@@ -1,0 +1,12 @@
+@tailwind base;
+
+@layer base {
+  :root {
+    --black: #000;
+  }
+  
+  .glow::after {
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+}
