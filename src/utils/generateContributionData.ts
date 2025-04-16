@@ -10,32 +10,44 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-// Generate mock contribution data for the GitHub contribution graph
+// Function to determine activity level based on contribution count
+const getActivityLevel = (count: number): 0 | 1 | 2 | 3 | 4 => {
+  if (count === 0) return 0;
+  if (count <= 2) return 1;
+  if (count <= 5) return 2;
+  if (count <= 10) return 3;
+  return 4;
+};
+
+// Helper function to generate mock contribution data for the GitHub-like graph
 export const generateContributionData = () => {
-  const data: Record<string, Array<{
-    done: number;
-    not_done: number;
-    date: string;
-  }>> = {
-    2025: [],
-    2024: []
+  const data: Record<string, any> = {
+    "2025": [],
+    "2024": []
   };
-  
+
+  // Define custom theme levels - these keys are expected by the library
+  data.level0 = "#EEEAFF"; // Lightest color - purple-light (no contributions)
+  data.level1 = "#D6CCFF"; // Light color (1-2 contributions)
+  data.level2 = "#A794FF"; // Medium color - purple-medium (3-5 contributions)
+  data.level3 = "#9B89E4"; // Medium-dark color (6-10 contributions)
+  data.level4 = "#6D5BDC"; // Darkest color - purple-dark (>10 contributions)
+
   const today = new Date();
   const currentYear = today.getFullYear();
-  
+
   // Days in the years
   const daysCount = {
     2024: 366, // Leap year
     2025: 365
   };
-  
+
   // Create date objects for each day in the years
   const dates: Record<number, Date[]> = {
     2024: [],
     2025: []
   };
-  
+
   // Generate dates for 2024 (or current year - 1)
   let startDate = new Date(2024, 0, 1);
   for (let i = 0; i < daysCount[2024]; i++) {
@@ -43,7 +55,7 @@ export const generateContributionData = () => {
     date.setDate(date.getDate() + i);
     dates[2024].push(date);
   }
-  
+
   // Generate dates for 2025 (or current year)
   startDate = new Date(2025, 0, 1);
   for (let i = 0; i < daysCount[2025]; i++) {
@@ -57,8 +69,8 @@ export const generateContributionData = () => {
     
     dates[2025].push(date);
   }
-  
-  // Patterns to make the contribution graph look realistic
+
+  // Generate contributions for each year
   const generateContributions = (dates: Date[]) => {
     return dates.map(date => {
       const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
@@ -112,17 +124,20 @@ export const generateContributionData = () => {
         }
       }
       
+      // Get level based on done count
+      const level = getActivityLevel(done);
+      
       return {
         done,
-        not_done: getRandomInt(0, 3), // Random small number of not-done items
-        date: formatDate(date)
+        date: formatDate(date),
+        level: level
       };
     });
   };
-  
+
   // Generate contributions for each year
-  data[2024] = generateContributions(dates[2024]);
-  data[2025] = generateContributions(dates[2025]);
-  
+  data["2024"] = generateContributions(dates[2024]);
+  data["2025"] = generateContributions(dates[2025]);
+
   return data;
 };

@@ -22,8 +22,7 @@ import { Button } from '../components/ui/button';
 import { userArtworks, currentUser } from '../data/mock';
 import { formatReadableDate } from '../utils/dateUtils';
 import { useNavigate } from 'react-router-dom';
-import AnimeNavBarDemo from '../components/ui/AnimeNavBarDemo';
-import DarkModeToggle from '../components/ui/DarkModeToggle';
+import PageNavbar from '../components/ui/PageNavbar';
 import CursorAnimation from '../components/CursorAnimation';
 import ContributionsGraph from '../components/ui/ContributionsGraph';
 import { generateContributionData } from '../utils/generateContributionData';
@@ -65,8 +64,7 @@ const ProfilePage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden flex flex-col">
       <CursorAnimation />
       
-      <AnimeNavBarDemo />
-      <DarkModeToggle />
+      <PageNavbar />
       
       <main className="flex-1 container mx-auto px-4 py-8 mt-20">
         {/* Profile Header */}

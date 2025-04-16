@@ -1,75 +1,168 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fabric } from 'fabric';
-import { motion } from 'framer-motion';
-import { DrawingMode, SymmetryMode } from '../types';
+import { 
+  Undo2, 
+  Redo2, 
+  Eye, 
+  Plus,
+  Maximize,
+  Minimize,
+  X,
+  Share2,
+  Download,
+  Plus as PlusIcon
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CanvasProps {
-  drawingMode: DrawingMode;
-  color: string;
-  brushWidth: number;
-  symmetryMode: SymmetryMode;
-  fillShape: boolean;
-  onCanvasChange: (canUndo: boolean, canRedo: boolean) => void;
+  onFullscreenChange?: (isFullscreen: boolean) => void;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ 
-  drawingMode, 
-  color, 
-  brushWidth, 
-  symmetryMode, 
-  fillShape,
-  onCanvasChange 
-}) => {
+const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
+  // Canvas state
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
-  const historyRef = useRef<fabric.Object[][]>([]);
-  const historyIndexRef = useRef<number>(-1);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [vertices, setVertices] = useState<fabric.Point[]>([]);
-  const [tempPolygon, setTempPolygon] = useState<fabric.Polygon | null>(null);
-
-  // Initialize canvas
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [activeColor, setActiveColor] = useState<string>('#ef4444'); // Red as shown in screenshots
+  const [brushSize, setBrushSize] = useState<number>(10);
+  const [brushOpacity, setBrushOpacity] = useState<number>(100);
+  const [canUndo, setCanUndo] = useState<boolean>(false);
+  const [canRedo, setCanRedo] = useState<boolean>(false);
+  
+  // UI state
+  const [showColorPalette, setShowColorPalette] = useState<boolean>(false);
+  const [showBrushSettings, setShowBrushSettings] = useState<boolean>(false);
+  const [showLayersPanel, setShowLayersPanel] = useState<boolean>(false);
+  const [activeTool, setActiveTool] = useState<string>('brush');
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  
+  // Reset position when changing modes
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (isFullscreen || isMinimized) {
+      setCanvasPosition({ x: 0, y: 0 });
+    }
+    
+    // Notify parent component about fullscreen change
+    if (onFullscreenChange) {
+      onFullscreenChange(isFullscreen);
+    }
+  }, [isFullscreen, isMinimized, onFullscreenChange]);
+  
+  // History for undo/redo
+  const historyRef = useRef<string[]>([]);
+  const currentStateIndexRef = useRef<number>(-1);
+
+  // Available colors (based on the screenshot)
+  const colorPalette = [
+    // Row 1 - Grayscale
+    '#000000', '#333333', '#666666', '#999999', '#cccccc', '#ffffff', '#ffffff',
+    // Row 2 - Light colors
+    '#f8a5a5', '#f8e3a3', '#b6e6bd', '#a8e6e6', '#a4c4f4', '#d2b8f8', '#f8d8c0',
+    // Row 3 - Medium colors
+    '#ef4444', '#f59e0b', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#f97316',
+    // Row 4 - Dark colors
+    '#b91c1c', '#d97706', '#15803d', '#0e7490', '#1d4ed8', '#7e22ce', '#c2410c'
+  ];
+  
+  // Tools from the screenshot
+  const tools = [
+    { id: 'brush', icon: '🖌️', tooltip: 'Brush' },
+    { id: 'line', icon: '➖', tooltip: 'Line' },
+    { id: 'arrow', icon: '➡️', tooltip: 'Arrow' },
+    { id: 'shape', icon: '◻️', tooltip: 'Shape' },
+    { id: 'text', icon: 'T', tooltip: 'Text' },
+    { id: 'eraser', icon: '🧽', tooltip: 'Eraser' }
+  ];
+
+  // Define updateCanvasSize using useCallback
+  const updateCanvasSize = useCallback(() => {
+    if (!fabricCanvasRef.current || !canvasContainerRef.current) return;
+    
+    const container = canvasContainerRef.current;
+    // Ensure we get the most up-to-date dimensions
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
+    
+    // Check if dimensions are valid before setting
+    if (newWidth > 0 && newHeight > 0) {
+      fabricCanvasRef.current.setDimensions({ width: newWidth, height: newHeight });
+      // Might need to adjust viewbox if zooming/panning is implemented later
+      // fabricCanvasRef.current.calcOffset(); 
+      fabricCanvasRef.current.renderAll();
+    } else {
+      // console.warn("Attempted to resize canvas with zero dimensions."); // Debug log
+    }
+  }, []); // Empty dependency array
+
+  // Initialize canvas and basic resize handling
+  useEffect(() => {
+    if (!canvasRef.current || !canvasContainerRef.current) return;
 
     const canvas = new fabric.Canvas(canvasRef.current, {
-      isDrawingMode: drawingMode === 'pencil' || 
-                     drawingMode === 'marker' ||
-                     drawingMode === 'watercolor' ||
-                     drawingMode === 'neon' ||
-                     drawingMode === 'pixel' ||
-                     drawingMode === 'eraser',
-      width: canvasSize.width,
-      height: canvasSize.height,
-      backgroundColor: '#ffffff',
+      isDrawingMode: true,
+      backgroundColor: '#ffffff', // Change from '#f8a5a5' to white
+      stopContextMenu: true,
+      fireRightClick: true,
+    });
+
+    // Prevent fabric's mouse events from bubbling up to the container
+    canvas.on('mouse:down', function(options) {
+      if (options.e) {
+        options.e.stopPropagation();
+      }
+    });
+    canvas.on('mouse:move', function(options) {
+      if (options.e) {
+        options.e.stopPropagation();
+      }
+    });
+    canvas.on('mouse:up', function(options) {
+      if (options.e) {
+        options.e.stopPropagation();
+      }
     });
 
     fabricCanvasRef.current = canvas;
 
-    // Save initial state
-    saveCanvasState();
+    // Call initial updateCanvasSize here
+    updateCanvasSize(); 
 
-    // Setup resize handler
+    // Handle window resize (still useful for actual browser window changes)
     const handleResize = () => {
-      if (!fabricCanvasRef.current) return;
-      
-      const container = canvasRef.current?.parentElement;
-      if (!container) return;
-      
-      const newWidth = container.clientWidth;
-      const newHeight = window.innerHeight * 0.7;
-      
-      setCanvasSize({ width: newWidth, height: newHeight });
-      fabricCanvasRef.current.setDimensions({ width: newWidth, height: newHeight });
-      fabricCanvasRef.current.renderAll();
+      updateCanvasSize();
     };
-
-    // Initial size
-    handleResize();
     window.addEventListener('resize', handleResize);
 
-    // Handle canvas events to track history
+    // Setup brush
+    const brush = new fabric.PencilBrush(canvas);
+    brush.color = activeColor;
+    brush.width = brushSize;
+    canvas.freeDrawingBrush = brush;
+
+    // Save initial state
+    const saveCanvasState = () => {
+      if (!fabricCanvasRef.current) return;
+      
+      // If we're not at the end of the history, remove everything after current index
+      if (currentStateIndexRef.current < historyRef.current.length - 1) {
+        historyRef.current = historyRef.current.slice(0, currentStateIndexRef.current + 1);
+      }
+      
+      // Save current state
+      const json = JSON.stringify(fabricCanvasRef.current.toJSON());
+      historyRef.current.push(json);
+      currentStateIndexRef.current = historyRef.current.length - 1;
+      
+      // Update undo/redo availability
+      setCanUndo(currentStateIndexRef.current > 0);
+      setCanRedo(currentStateIndexRef.current < historyRef.current.length - 1);
+    };
+
+    // Setup event listeners
     canvas.on('object:added', saveCanvasState);
     canvas.on('object:modified', saveCanvasState);
     canvas.on('object:removed', saveCanvasState);
@@ -78,727 +171,589 @@ const Canvas: React.FC<CanvasProps> = ({
       canvas.dispose();
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
-
-  // Update canvas size
+  // Add updateCanvasSize dependency
+  }, [activeColor, brushSize, updateCanvasSize]);
+  
+  // Update canvas size when fullscreen or minimized state changes (simplified)
+  // This ensures size is correct if component mounts directly into a state
+  // or if a resize happens *without* the main animation.
+  // The animation transition resize is handled by onAnimationComplete.
   useEffect(() => {
-    if (fabricCanvasRef.current) {
-      fabricCanvasRef.current.setDimensions({ width: canvasSize.width, height: canvasSize.height });
-      fabricCanvasRef.current.renderAll();
-    }
-  }, [canvasSize]);
+    updateCanvasSize();
+  // Add updateCanvasSize dependency
+  }, [isFullscreen, isMinimized, updateCanvasSize]);
 
-  // Draw horizontal guidelines for symmetry
+  // Update brush when color or size changes
+  useEffect(() => {
+    if (!fabricCanvasRef.current) return;
+    
+    const canvas = fabricCanvasRef.current;
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = activeColor;
+      canvas.freeDrawingBrush.width = brushSize;
+      // @ts-ignore
+      canvas.freeDrawingBrush.opacity = brushOpacity / 100;
+      canvas.renderAll();
+    }
+  }, [activeColor, brushSize, brushOpacity]);
+  
+  // Handle tool changes
   useEffect(() => {
     if (!fabricCanvasRef.current) return;
     
     const canvas = fabricCanvasRef.current;
     
-    // Remove existing guides
-    canvas.getObjects().forEach(obj => {
-      if (obj.data && obj.data.isGuide) {
-        canvas.remove(obj);
-      }
-    });
-    
-    // Add new guides based on symmetry mode
-    if (symmetryMode !== 'none') {
-      const centerX = canvas.width! / 2;
-      const centerY = canvas.height! / 2;
-      
-      if (symmetryMode === 'horizontal' || symmetryMode === 'quad') {
-        const line = new fabric.Line([0, centerY, canvas.width!, centerY], {
-          stroke: '#3B82F6',
-          strokeDashArray: [5, 5],
-          selectable: false,
-          evented: false,
-          strokeWidth: 1,
-          data: { isGuide: true }
-        });
-        canvas.add(line);
-        canvas.bringToFront(line);
-      }
-      
-      if (symmetryMode === 'vertical' || symmetryMode === 'quad') {
-        const line = new fabric.Line([centerX, 0, centerX, canvas.height!], {
-          stroke: '#3B82F6',
-          strokeDashArray: [5, 5],
-          selectable: false,
-          evented: false,
-          strokeWidth: 1,
-          data: { isGuide: true }
-        });
-        canvas.add(line);
-        canvas.bringToFront(line);
-      }
-    }
-    
-    canvas.renderAll();
-  }, [symmetryMode, canvasSize]);
-
-  // Update drawing mode
-  useEffect(() => {
-    if (!fabricCanvasRef.current) return;
-
-    const canvas = fabricCanvasRef.current;
-    
-    // Disable drawing mode by default
-    canvas.isDrawingMode = false;
-    
-    // Enable object selection only in select mode
-    canvas.selection = drawingMode === 'select';
-    canvas.getObjects().forEach(obj => {
-      if (!obj.data || !obj.data.isGuide) {
-        obj.selectable = drawingMode === 'select';
-        obj.evented = drawingMode === 'select';
-      }
-    });
-
-    // Configure specific drawing modes
-    if (drawingMode === 'pencil' || 
-        drawingMode === 'marker' ||
-        drawingMode === 'watercolor' ||
-        drawingMode === 'neon' ||
-        drawingMode === 'pixel' ||
-        drawingMode === 'eraser') {
-      
+    // Set drawing mode based on active tool
+    if (activeTool === 'brush') {
       canvas.isDrawingMode = true;
-      const pencil = canvas.freeDrawingBrush;
-      
-      // Configure brush based on drawing mode
-      if (drawingMode === 'pencil') {
-        pencil.color = color;
-        pencil.width = brushWidth;
-        if (pencil instanceof fabric.PencilBrush) {
-          pencil.decimate = 8;
-        }
-      } else if (drawingMode === 'marker') {
-        pencil.color = color;
-        pencil.width = brushWidth * 1.5;
-        if (pencil instanceof fabric.PencilBrush) {
-          pencil.decimate = 4;
-        }
-      } else if (drawingMode === 'watercolor') {
-        pencil.color = color;
-        pencil.width = brushWidth * 2;
-        pencil.shadow = null;
-        
-        try {
-          // Not all versions of fabric.js support this property
-          pencil.opacity = 0.3;
-        } catch (e) {
-          console.warn('Opacity setting not supported, using transparent color instead');
-          pencil.color = fabric.util.colorTransparency ? 
-            fabric.util.colorTransparency(color, 0.3) : 
-            color + '4D'; // 30% opacity in hex
-        }
-        
-        if (pencil instanceof fabric.PencilBrush) {
-          pencil.decimate = 2;
-          pencil.strokeLineCap = 'round';
-          pencil.strokeLineJoin = 'round';
-        }
-      } else if (drawingMode === 'neon') {
-        pencil.color = color;
-        pencil.width = brushWidth;
-        if (pencil instanceof fabric.PencilBrush) {
-          pencil.shadow = new fabric.Shadow({
-            color: color,
-            blur: brushWidth * 2
-          });
-          pencil.decimate = 8;
-        }
-      } else if (drawingMode === 'pixel') {
-        pencil.color = color;
-        pencil.width = Math.max(5, Math.floor(brushWidth / 5) * 5); // Snap to 5px increments
-        if (pencil instanceof fabric.PencilBrush) {
-          pencil.decimate = 15; // Higher value for more pixelated effect
-        }
-      } else if (drawingMode === 'eraser') {
-        pencil.color = '#ffffff'; // Canvas background color
-        pencil.width = brushWidth * 2;
-        if (pencil instanceof fabric.PencilBrush) {
-          // Optional: Use the globalCompositeOperation for eraser effect
-          canvas.contextTop.globalCompositeOperation = 'destination-out';
-        }
-      }
-      
-      // Setup symmetry for brush drawing
-      if (symmetryMode !== 'none') {
-        const originalMouseMove = pencil.onMouseMove;
-        
-        pencil.onMouseMove = function(pointer, options) {
-          // Call original brush method first
-          originalMouseMove.call(this, pointer, options);
-          
-          if (!canvas || !options) return;
-          
-          const centerX = canvas.width! / 2;
-          const centerY = canvas.height! / 2;
-          const symmetryPointers = [];
-          
-          // Create symmetry points based on mode
-          if (symmetryMode === 'horizontal' || symmetryMode === 'quad') {
-            const horizontalMirrorPoint = { x: pointer.x, y: 2 * centerY - pointer.y };
-            symmetryPointers.push(horizontalMirrorPoint);
-          }
-          
-          if (symmetryMode === 'vertical' || symmetryMode === 'quad') {
-            const verticalMirrorPoint = { x: 2 * centerX - pointer.x, y: pointer.y };
-            symmetryPointers.push(verticalMirrorPoint);
-          }
-          
-          if (symmetryMode === 'quad') {
-            const diagonalMirrorPoint = { x: 2 * centerX - pointer.x, y: 2 * centerY - pointer.y };
-            symmetryPointers.push(diagonalMirrorPoint);
-          }
-          
-          // Draw all symmetry points
-          symmetryPointers.forEach(p => {
-            this._addPoint(p);
-          });
-        };
-      }
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = activeColor;
+      canvas.freeDrawingBrush.width = brushSize;
+      // @ts-ignore
+      canvas.freeDrawingBrush.opacity = brushOpacity / 100;
+    } else if (activeTool === 'eraser') {
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = '#ffffff'; // Same as background
+      canvas.freeDrawingBrush.width = brushSize * 2;
     } else {
-      // Reset composition mode when not in eraser mode
-      if (canvas.contextTop) {
-        canvas.contextTop.globalCompositeOperation = 'source-over';
-      }
-      
-      // Reset polygon drawing state when switching modes
-      if (drawingMode !== 'polygon') {
-        setVertices([]);
-        if (tempPolygon) {
-          canvas.remove(tempPolygon);
-          setTempPolygon(null);
-        }
-      }
-    }
-
-    canvas.renderAll();
-  }, [drawingMode, color, brushWidth, symmetryMode]);
-
-  // Handle mouse interactions for shapes
-  useEffect(() => {
-    if (!fabricCanvasRef.current || 
-        drawingMode === 'pencil' || 
-        drawingMode === 'marker' || 
-        drawingMode === 'watercolor' || 
-        drawingMode === 'neon' || 
-        drawingMode === 'pixel' || 
-        drawingMode === 'eraser' || 
-        drawingMode === 'select' || 
-        drawingMode === 'polygon') return;
-
-    const canvas = fabricCanvasRef.current;
-    let startPoint: { x: number; y: number } | null = null;
-    let activeShape: fabric.Object | null = null;
-
-    const handleMouseDown = (options: fabric.IEvent<MouseEvent>) => {
-      if (!canvas || !options.pointer) return;
-      
-      setIsDrawing(true);
-      startPoint = options.pointer;
-
-      // Different shapes based on drawingMode
-      if (drawingMode === 'line') {
-        activeShape = new fabric.Line(
-          [startPoint.x, startPoint.y, startPoint.x, startPoint.y], 
-          {
-            stroke: color,
-            strokeWidth: brushWidth,
-            selectable: false,
-            evented: false,
-          }
-        );
-      } else if (drawingMode === 'rectangle') {
-        activeShape = new fabric.Rect({
-          left: startPoint.x,
-          top: startPoint.y,
-          width: 0,
-          height: 0,
-          fill: fillShape ? color : 'transparent',
-          stroke: color,
-          strokeWidth: brushWidth,
-          selectable: false,
-          evented: false,
-        });
-      } else if (drawingMode === 'circle') {
-        activeShape = new fabric.Circle({
-          left: startPoint.x,
-          top: startPoint.y,
-          radius: 0,
-          fill: fillShape ? color : 'transparent',
-          stroke: color,
-          strokeWidth: brushWidth,
-          selectable: false,
-          evented: false,
-        });
-      }
-
-      if (activeShape) {
-        canvas.add(activeShape);
-        canvas.renderAll();
-      }
-    };
-
-    const handleMouseMove = (options: fabric.IEvent<MouseEvent>) => {
-      if (!isDrawing || !startPoint || !activeShape || !options.pointer) return;
-
-      const currentPoint = options.pointer;
-
-      if (drawingMode === 'line' && activeShape instanceof fabric.Line) {
-        activeShape.set({
-          x2: currentPoint.x,
-          y2: currentPoint.y,
-        });
-      } else if (drawingMode === 'rectangle' && activeShape instanceof fabric.Rect) {
-        const width = currentPoint.x - startPoint.x;
-        const height = currentPoint.y - startPoint.y;
-        
-        if (width > 0) {
-          activeShape.set('width', width);
-        } else {
-          activeShape.set({
-            left: currentPoint.x,
-            width: Math.abs(width),
-          });
-        }
-        
-        if (height > 0) {
-          activeShape.set('height', height);
-        } else {
-          activeShape.set({
-            top: currentPoint.y,
-            height: Math.abs(height),
-          });
-        }
-      } else if (drawingMode === 'circle' && activeShape instanceof fabric.Circle) {
-        const radius = Math.sqrt(
-          Math.pow(currentPoint.x - startPoint.x, 2) + 
-          Math.pow(currentPoint.y - startPoint.y, 2)
-        ) / 2;
-        
-        const centerX = (startPoint.x + currentPoint.x) / 2;
-        const centerY = (startPoint.y + currentPoint.y) / 2;
-        
-        activeShape.set({
-          left: centerX - radius,
-          top: centerY - radius,
-          radius: radius,
-        });
-      }
-
-      canvas.renderAll();
-    };
-
-    const handleMouseUp = () => {
-      setIsDrawing(false);
-      startPoint = null;
-      
-      if (activeShape && symmetryMode !== 'none') {
-        applySymmetryToShape(activeShape);
-      }
-      
-      activeShape = null;
-      saveCanvasState();
-    };
-
-    // Add event listeners
-    canvas.on('mouse:down', handleMouseDown);
-    canvas.on('mouse:move', handleMouseMove);
-    canvas.on('mouse:up', handleMouseUp);
-
-    return () => {
-      // Remove event listeners
-      canvas.off('mouse:down', handleMouseDown);
-      canvas.off('mouse:move', handleMouseMove);
-      canvas.off('mouse:up', handleMouseUp);
-    };
-  }, [drawingMode, color, brushWidth, isDrawing, symmetryMode, fillShape]);
-  
-  // Handle polygon drawing
-  useEffect(() => {
-    if (!fabricCanvasRef.current || drawingMode !== 'polygon') return;
-    
-    const canvas = fabricCanvasRef.current;
-    
-    const handleMouseDown = (options: fabric.IEvent<MouseEvent>) => {
-      if (!options.pointer) return;
-      
-      const newVertex = new fabric.Point(options.pointer.x, options.pointer.y);
-      const updatedVertices = [...vertices, newVertex];
-      setVertices(updatedVertices);
-      
-      // Remove the old preview
-      if (tempPolygon) {
-        canvas.remove(tempPolygon);
-      }
-      
-      // Create a new polygon with the updated vertices
-      if (updatedVertices.length >= 3) {
-        const polygonPoints = updatedVertices.map(v => ({x: v.x, y: v.y}));
-        const polygon = new fabric.Polygon(polygonPoints, {
-          fill: fillShape ? color : 'transparent',
-          stroke: color,
-          strokeWidth: brushWidth,
-          selectable: false,
-          evented: false,
-        });
-        
-        setTempPolygon(polygon);
-        canvas.add(polygon);
-      }
-      
-      // Add a point marker
-      const pointMarker = new fabric.Circle({
-        left: newVertex.x - 3,
-        top: newVertex.y - 3,
-        radius: 3,
-        fill: '#ff4081',
-        stroke: '#fff',
-        strokeWidth: 1,
-        selectable: false,
-        evented: false,
-        data: { isPolygonVertex: true }
-      });
-      
-      canvas.add(pointMarker);
-      canvas.renderAll();
-    };
-    
-    const handleDblClick = () => {
-      if (vertices.length < 3) return;
-      
-      // Remove preview polygon
-      if (tempPolygon) {
-        canvas.remove(tempPolygon);
-      }
-      
-      // Remove all vertex markers
-      canvas.getObjects().forEach(obj => {
-        if (obj.data && obj.data.isPolygonVertex) {
-          canvas.remove(obj);
-        }
-      });
-      
-      // Create final polygon
-      const polygonPoints = vertices.map(v => ({x: v.x, y: v.y}));
-      const finalPolygon = new fabric.Polygon(polygonPoints, {
-        fill: fillShape ? color : 'transparent',
-        stroke: color,
-        strokeWidth: brushWidth,
-      });
-      
-      canvas.add(finalPolygon);
-      
-      // Apply symmetry if needed
-      if (symmetryMode !== 'none') {
-        applySymmetryToShape(finalPolygon);
-      }
-      
-      // Reset polygon drawing state
-      setVertices([]);
-      setTempPolygon(null);
-      saveCanvasState();
-      
-      canvas.renderAll();
-    };
-    
-    // Add event listeners
-    canvas.on('mouse:down', handleMouseDown);
-    canvas.on('mouse:dblclick', handleDblClick);
-    
-    return () => {
-      // Remove event listeners
-      canvas.off('mouse:down', handleMouseDown);
-      canvas.off('mouse:dblclick', handleDblClick);
-    };
-  }, [drawingMode, vertices, tempPolygon, color, brushWidth, fillShape, symmetryMode]);
-  
-  // Apply symmetry to a given shape
-  const applySymmetryToShape = (shape: fabric.Object) => {
-    if (!fabricCanvasRef.current) return;
-    
-    const canvas = fabricCanvasRef.current;
-    const centerX = canvas.width! / 2;
-    const centerY = canvas.height! / 2;
-    
-    // Create mirrored copies based on symmetry mode
-    if (symmetryMode === 'horizontal' || symmetryMode === 'quad') {
-      shape.clone((cloned: fabric.Object) => {
-        cloned.set({
-          flipY: true,
-          top: 2 * centerY - (cloned.top || 0) - (cloned.getScaledHeight() || 0)
-        });
-        canvas.add(cloned);
-      });
-    }
-    
-    if (symmetryMode === 'vertical' || symmetryMode === 'quad') {
-      shape.clone((cloned: fabric.Object) => {
-        cloned.set({
-          flipX: true,
-          left: 2 * centerX - (cloned.left || 0) - (cloned.getScaledWidth() || 0)
-        });
-        canvas.add(cloned);
-      });
-    }
-    
-    if (symmetryMode === 'quad') {
-      shape.clone((cloned: fabric.Object) => {
-        cloned.set({
-          flipX: true,
-          flipY: true,
-          left: 2 * centerX - (cloned.left || 0) - (cloned.getScaledWidth() || 0),
-          top: 2 * centerY - (cloned.top || 0) - (cloned.getScaledHeight() || 0)
-        });
-        canvas.add(cloned);
-      });
+      // For other tools like line, shape, etc.
+      canvas.isDrawingMode = false;
     }
     
     canvas.renderAll();
+  }, [activeTool, activeColor, brushSize, brushOpacity]);
+
+  // Undo function
+  const undo = () => {
+    if (!fabricCanvasRef.current || currentStateIndexRef.current <= 0) return;
+    
+    currentStateIndexRef.current--;
+    const json = historyRef.current[currentStateIndexRef.current];
+    fabricCanvasRef.current.loadFromJSON(json, () => {
+      fabricCanvasRef.current?.renderAll();
+      setCanUndo(currentStateIndexRef.current > 0);
+      setCanRedo(currentStateIndexRef.current < historyRef.current.length - 1);
+    });
   };
 
-  // Save current canvas state to history
-  const saveCanvasState = () => {
-    if (!fabricCanvasRef.current) return;
-
-    // Clone all objects on the canvas
-    const json = fabricCanvasRef.current.toJSON();
-    const canvasState = JSON.stringify(json);
+  // Redo function
+  const redo = () => {
+    if (!fabricCanvasRef.current || currentStateIndexRef.current >= historyRef.current.length - 1) return;
     
-    // If we're not at the end of the history, remove any future states
-    if (historyIndexRef.current < historyRef.current.length - 1) {
-      historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
-    }
-    
-    // Add new state to history
-    historyRef.current.push(JSON.parse(canvasState).objects);
-    historyIndexRef.current = historyRef.current.length - 1;
-    
-    // Update parent component with undo/redo availability
-    onCanvasChange(historyIndexRef.current > 0, historyIndexRef.current < historyRef.current.length - 1);
+    currentStateIndexRef.current++;
+    const json = historyRef.current[currentStateIndexRef.current];
+    fabricCanvasRef.current.loadFromJSON(json, () => {
+      fabricCanvasRef.current?.renderAll();
+      setCanUndo(currentStateIndexRef.current > 0);
+      setCanRedo(currentStateIndexRef.current < historyRef.current.length - 1);
+    });
   };
 
-  // Public methods exposed to parent component
-  useEffect(() => {
-    if (!fabricCanvasRef.current) return;
-
-    // Expose canvas methods to parent component via ref
-    const canvas = fabricCanvasRef.current;
-
-    // Define public methods
-    window.clearCanvas = () => {
-      canvas.clear();
-      saveCanvasState();
-      
-      // Re-add guides if symmetry is active
-      if (symmetryMode !== 'none') {
-        const centerX = canvas.width! / 2;
-        const centerY = canvas.height! / 2;
-        
-        if (symmetryMode === 'horizontal' || symmetryMode === 'quad') {
-          const line = new fabric.Line([0, centerY, canvas.width!, centerY], {
-            stroke: '#3B82F6',
-            strokeDashArray: [5, 5],
-            selectable: false,
-            evented: false,
-            strokeWidth: 1,
-            data: { isGuide: true }
-          });
-          canvas.add(line);
-        }
-        
-        if (symmetryMode === 'vertical' || symmetryMode === 'quad') {
-          const line = new fabric.Line([centerX, 0, centerX, canvas.height!], {
-            stroke: '#3B82F6',
-            strokeDashArray: [5, 5],
-            selectable: false,
-            evented: false,
-            strokeWidth: 1,
-            data: { isGuide: true }
-          });
-          canvas.add(line);
-        }
-      }
+  // Handle drag start
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isFullscreen || isMinimized) return;
+    
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - canvasPosition.x,
+      y: e.clientY - canvasPosition.y
     };
+  };
+  
+  // Handle drag move
+  const handleDragMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || isFullscreen || isMinimized) return;
+    
+    const newX = e.clientX - dragStartRef.current.x;
+    const newY = e.clientY - dragStartRef.current.y;
+    
+    // Limit drag range to prevent the canvas from going too far off-screen
+    const containerWidth = canvasContainerRef.current?.clientWidth || 0;
+    const containerHeight = canvasContainerRef.current?.clientHeight || 0;
+    const maxX = window.innerWidth / 2;
+    const maxY = window.innerHeight / 2;
+    
+    setCanvasPosition({
+      x: Math.max(-maxX + containerWidth/2, Math.min(newX, maxX - containerWidth/2)),
+      y: Math.max(-maxY + containerHeight/2, Math.min(newY, maxY - containerHeight/2))
+    });
+  };
+  
+  // Handle drag end
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
 
-    window.downloadCanvas = () => {
-      if (!canvas) return;
-      
-      // Temporarily hide guides for the export
-      const guides: fabric.Object[] = [];
-      canvas.getObjects().forEach(obj => {
-        if (obj.data && obj.data.isGuide) {
-          obj.visible = false;
-          guides.push(obj);
-        }
-      });
-      
-      const dataURL = canvas.toDataURL({
-        format: 'png',
-        quality: 1,
-      });
-      
-      // Show guides again
-      guides.forEach(guide => {
-        guide.visible = true;
-      });
-      canvas.renderAll();
-      
-      const link = document.createElement('a');
-      link.download = 'digital-artwork.png';
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    window.undoCanvas = () => {
-      if (historyIndexRef.current <= 0) return;
-      
-      historyIndexRef.current--;
-      loadCanvasState();
-    };
-
-    window.redoCanvas = () => {
-      if (historyIndexRef.current >= historyRef.current.length - 1) return;
-      
-      historyIndexRef.current++;
-      loadCanvasState();
-    };
-
-    window.getCanvasDataURL = () => {
-      // Temporarily hide guides for the export
-      const guides: fabric.Object[] = [];
-      canvas.getObjects().forEach(obj => {
-        if (obj.data && obj.data.isGuide) {
-          obj.visible = false;
-          guides.push(obj);
-        }
-      });
-      
-      const dataURL = canvas.toDataURL({
-        format: 'png',
-        quality: 1,
-      });
-      
-      // Show guides again
-      guides.forEach(guide => {
-        guide.visible = true;
-      });
-      canvas.renderAll();
-      
-      return dataURL;
-    };
-
-    window.exportCanvas = (format: 'png' | 'jpg') => {
-      if (!canvas) return;
-      
-      // Temporarily hide guides for the export
-      const guides: fabric.Object[] = [];
-      canvas.getObjects().forEach(obj => {
-        if (obj.data && obj.data.isGuide) {
-          obj.visible = false;
-          guides.push(obj);
-        }
-      });
-      
-      const dataURL = canvas.toDataURL({
-        format: format,
-        quality: 1,
-      });
-      
-      // Show guides again
-      guides.forEach(guide => {
-        guide.visible = true;
-      });
-      canvas.renderAll();
-      
-      const link = document.createElement('a');
-      link.download = `digital-artwork.${format}`;
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-  }, [symmetryMode]);
-
-  // Load canvas state from history
-  const loadCanvasState = () => {
+  // Toggle fullscreen and notify parent component
+  const toggleFullscreen = () => {
+    if (isMinimized) {
+      setIsMinimized(false);
+    } else if (isFullscreen) {
+      setIsFullscreen(false);
+    } else {
+      setIsFullscreen(true);
+    }
+  };
+  
+  // Handle download
+  const downloadCanvas = () => {
     if (!fabricCanvasRef.current) return;
     
-    const canvas = fabricCanvasRef.current;
-    const objects = historyRef.current[historyIndexRef.current];
+    const dataURL = fabricCanvasRef.current.toDataURL({
+      format: 'png',
+      quality: 1
+    });
     
-    canvas.clear();
-    
-    if (objects) {
-      // Recreate objects from the saved state
-      canvas.loadFromJSON({ objects, version: '5.3.0' }, () => {
-        canvas.renderAll();
-        
-        // Update undo/redo buttons state
-        onCanvasChange(historyIndexRef.current > 0, historyIndexRef.current < historyRef.current.length - 1);
+    const link = document.createElement('a');
+    link.download = 'arto-canvas-artwork.png';
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  // Handle share
+  const shareCanvas = () => {
+    // Check if the Web Share API is supported by the browser
+    if (navigator.share) {
+      // Get canvas data URL
+      if (!fabricCanvasRef.current) return;
+      
+      const dataURL = fabricCanvasRef.current.toDataURL({
+        format: 'png',
+        quality: 1
       });
-    }
-    
-    // Re-add guides if symmetry is active
-    if (symmetryMode !== 'none') {
-      const centerX = canvas.width! / 2;
-      const centerY = canvas.height! / 2;
       
-      if (symmetryMode === 'horizontal' || symmetryMode === 'quad') {
-        const line = new fabric.Line([0, centerY, canvas.width!, centerY], {
-          stroke: '#3B82F6',
-          strokeDashArray: [5, 5],
-          selectable: false,
-          evented: false,
-          strokeWidth: 1,
-          data: { isGuide: true }
+      // Convert data URL to Blob
+      fetch(dataURL)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], 'arto-canvas-artwork.png', { type: 'image/png' });
+          navigator.share({
+            title: 'My Artwork from Arto',
+            text: 'Check out this artwork I created with Arto!',
+            files: [file]
+          }).catch(error => {
+            console.log('Sharing failed', error);
+            alert('Sharing failed. Try downloading and sharing manually.');
+          });
         });
-        canvas.add(line);
-      }
-      
-      if (symmetryMode === 'vertical' || symmetryMode === 'quad') {
-        const line = new fabric.Line([centerX, 0, centerX, canvas.height!], {
-          stroke: '#3B82F6',
-          strokeDashArray: [5, 5],
-          selectable: false,
-          evented: false,
-          strokeWidth: 1,
-          data: { isGuide: true }
-        });
-        canvas.add(line);
-      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      alert('Web Share API not supported in your browser. Try downloading and sharing manually.');
     }
+  };
+  
+  // Handle add to showcase
+  const addToShowcase = () => {
+    // This would typically save to a database, but for this demo we'll just show an alert
+    alert('Artwork added to showcase! (This is a demo feature that would save to a database in a real app)');
   };
 
   return (
-    <motion.div 
-      className="relative bg-white dark:bg-gray-800 shadow-lg p-0 w-full h-full overflow-hidden rounded-lg"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <div className="bg-gradient-to-b from-gray-100 to-white dark:from-gray-750 dark:to-gray-800 h-8 w-full flex items-center px-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 mx-auto">
-          arto-canvas.png
-        </div>
+    <div className={`min-h-screen w-full bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden ${isFullscreen ? 'p-0' : 'pt-24'}`}>
+      {/* Background elements for visual interest - hide in fullscreen mode */}
+      {!isFullscreen && (
+        <>
+          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+          <div className="absolute top-20 right-20 w-64 h-64 bg-indigo-400 rounded-full filter blur-3xl opacity-10"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl opacity-10"></div>
+        </>
+      )}
+      
+      <div className="max-w-5xl mx-auto relative pb-20">
+        {/* Canvas container with resizable modes */}
+        <AnimatePresence>
+          <motion.div 
+            ref={canvasContainerRef}
+            data-testid="canvas-container"
+            onAnimationComplete={updateCanvasSize}
+            className={`relative z-30 overflow-hidden ${
+              isFullscreen 
+                ? 'fixed inset-0' 
+                : isMinimized
+                  ? 'fixed bottom-4 right-4 w-80 h-40'
+                  : 'bg-gradient-to-r from-indigo-50/50 to-white border-[3px] border-indigo-200 shadow-[0_0_15px_rgba(109,91,220,0.15)] [mask-image:radial-gradient(800rem_96rem_at_center,white,transparent)] dark:from-gray-800/50 dark:to-gray-800 dark:border-indigo-700 dark:shadow-[0_0_15px_rgba(109,91,220,0.07)]'
+            }`}
+            style={{ 
+              cursor: !isFullscreen && !isMinimized && isDragging ? 'grabbing' : (!isFullscreen && !isMinimized ? 'grab' : 'default')
+            }}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.9,
+              borderRadius: 0, // No border radius for sharp edges
+              width: isFullscreen ? '100%' : isMinimized ? '320px' : '100%',
+              height: isFullscreen ? '100%' : isMinimized ? '180px' : '70vh',
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              borderRadius: 0, // Ensure no border radius in any state for sharp corners
+              width: isFullscreen ? '100%' : isMinimized ? '320px' : '100%',
+              height: isFullscreen ? '100%' : isMinimized ? '180px' : '70vh',
+              x: canvasPosition.x,
+              y: canvasPosition.y
+            }}
+            transition={{ 
+              type: "spring",
+              stiffness: 260,
+              damping: 20
+            }}
+            onMouseDown={handleDragStart}
+            onMouseMove={handleDragMove}
+            onMouseUp={handleDragEnd}
+            onMouseLeave={handleDragEnd}
+          >
+            {/* Plus icons at corners - like the hero section */}
+            {!isFullscreen && !isMinimized && (
+              <>
+                <Plus
+                  strokeWidth={4} 
+                  className="text-purple-dark absolute -left-6 -top-6 h-12 w-12 z-10"
+                />
+                <Plus
+                  strokeWidth={4}
+                  className="text-purple-dark absolute -bottom-6 -left-6 h-12 w-12 z-10"
+                />
+                <Plus
+                  strokeWidth={4}
+                  className="text-purple-dark absolute -right-6 -top-6 h-12 w-12 z-10"
+                />
+                <Plus
+                  strokeWidth={4}
+                  className="text-purple-dark absolute -bottom-6 -right-6 h-12 w-12 z-10"
+                />
+              </>
+            )}
+            
+            {/* Floating control buttons, directly on canvas instead of in a header */}
+            <div className="absolute top-3 right-3 z-50 flex space-x-2">
+              {!isMinimized && (
+                <>
+                  <button 
+                    className={`w-10 h-10 flex items-center justify-center rounded-full ${canUndo ? 'bg-black/30 text-white' : 'bg-black/10 text-white/50'}`}
+                    onClick={undo}
+                    disabled={!canUndo}
+                  >
+                    <Undo2 size={18} />
+                  </button>
+                  <button 
+                    className={`w-10 h-10 flex items-center justify-center rounded-full ${canRedo ? 'bg-black/30 text-white' : 'bg-black/10 text-white/50'}`}
+                    onClick={redo}
+                    disabled={!canRedo}
+                  >
+                    <Redo2 size={18} />
+                  </button>
+                  <button 
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white"
+                    onClick={() => setShowLayersPanel(!showLayersPanel)}
+                  >
+                    <Eye size={18} />
+                  </button>
+                </>
+              )}
+              <button 
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white"
+                onClick={toggleFullscreen}
+              >
+                {isMinimized ? <Maximize size={18} /> : isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+              </button>
+            </div>
+            
+            {/* Actual canvas element */}
+            <canvas 
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full" 
+            />
+            
+            {/* Left toolbar - only show when not minimized */}
+            {!isMinimized && (
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-40 flex flex-col bg-black/20 backdrop-blur-sm rounded-r-lg p-1 space-y-3">
+                {/* Color indicator */}
+                <button 
+                  onClick={() => setShowColorPalette(!showColorPalette)} 
+                  className="w-12 h-12 rounded-full border-2 border-white" 
+                  style={{ backgroundColor: activeColor }}
+                />
+                
+                {/* Tools */}
+                {tools.map((tool) => (
+                  <button 
+                    key={tool.id}
+                    onClick={() => setActiveTool(tool.id)}
+                    className={`w-12 h-12 flex items-center justify-center text-xl rounded-lg ${activeTool === tool.id ? 'bg-black/30 text-white' : 'text-white hover:bg-black/20'}`}
+                    title={tool.tooltip}
+                  >
+                    {tool.icon}
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+        
+        {/* Action Buttons - Now OUTSIDE the canvas container with increased spacing */}
+        {!isMinimized && !isFullscreen && (
+          <div className="flex justify-end mt-9.4 space-x-6">
+            {/* Share Button */}
+            <motion.div
+              className="group relative"
+              whileHover={{ 
+                scale: 1.15,
+                rotate: [0, -5, 5, -5, 5, 0],
+                transition: { 
+                  scale: { duration: 0.2 },
+                  rotate: { duration: 0.5, ease: "easeInOut" }
+                }
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <button
+                onClick={shareCanvas}
+                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg overflow-hidden"
+              >
+                <Share2 size={24} />
+                
+                {/* Animated gradient overlay - only visible on hover */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-400/30 to-indigo-500/0"
+                  initial={{ x: "-100%" }}
+                  whileHover={{
+                    x: ["100%", "-100%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+              </button>
+              
+              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                Share
+              </div>
+            </motion.div>
+            
+            {/* Add to Showcase Button */}
+            <motion.div
+              className="group relative"
+              whileHover={{ 
+                scale: 1.15,
+                y: [0, -5, 5, -5, 0],
+                transition: { 
+                  scale: { duration: 0.2 },
+                  y: { duration: 0.5, ease: "easeInOut" }
+                }
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <button
+                onClick={addToShowcase}
+                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-green-500 text-white shadow-lg overflow-hidden"
+              >
+                <PlusIcon size={24} />
+                
+                {/* Animated ripple effect - only visible on hover */}
+                <motion.div 
+                  className="absolute inset-0 border-4 border-green-300 rounded-full"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  whileHover={{
+                    scale: [0.8, 1.2],
+                    opacity: [0, 0.5, 0],
+                    transition: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeOut"
+                    }
+                  }}
+                />
+              </button>
+              
+              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                Add to Showcase
+              </div>
+            </motion.div>
+            
+            {/* Download Button */}
+            <motion.div
+              className="group relative"
+              whileHover={{ 
+                scale: 1.15,
+                x: [0, 5, -5, 5, 0],
+                transition: { 
+                  scale: { duration: 0.2 },
+                  x: { duration: 0.5, ease: "easeInOut" }
+                }
+              }}
+              whileTap={{ scale: 0.9, y: 5 }}
+            >
+              <button
+                onClick={downloadCanvas}
+                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-purple-500 text-white shadow-lg overflow-hidden"
+              >
+                <Download size={24} />
+                
+                {/* Animated particles - only visible on hover */}
+                <AnimatePresence>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                  >
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <motion.div 
+                        key={i}
+                        className="absolute w-2 h-2 bg-purple-200 rounded-full"
+                        initial={{ 
+                          x: 0, 
+                          y: 0,
+                          opacity: 0 
+                        }}
+                        animate={{
+                          x: [0, (i % 2 === 0 ? -15 : 15) * Math.random()],
+                          y: [0, -20 * Math.random() - 10],
+                          opacity: [0, 0.8, 0],
+                        }}
+                        transition={{
+                          duration: 1 + Math.random(),
+                          repeat: Infinity,
+                          delay: i * 0.3,
+                        }}
+                        style={{
+                          top: '50%',
+                          left: '50%',
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </button>
+              
+              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                Download
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
-      <canvas ref={canvasRef} className="w-full h-full" />
-      {drawingMode === 'polygon' && (
-        <div className="absolute bottom-4 left-4 right-4 bg-indigo-100 text-indigo-800 p-2 rounded-md text-sm text-center">
-          Click to add points. Double-click to complete the polygon.
+      
+      {/* Color palette popup */}
+      {showColorPalette && !isMinimized && (
+        <div className="fixed left-16 top-1/4 z-50 bg-black/80 backdrop-blur-md rounded-xl p-4 shadow-xl">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-white text-sm font-medium">Palette</div>
+            <button 
+              className="text-white hover:text-gray-300"
+              onClick={() => setShowColorPalette(false)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-2 w-48">
+            {colorPalette.map((color, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setActiveColor(color);
+                  setShowColorPalette(false);
+                }}
+                className={`w-6 h-6 rounded-full transition-transform ${activeColor === color ? 'ring-2 ring-white scale-110' : ''}`}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
         </div>
       )}
-    </motion.div>
+      
+      {/* Brush settings popup */}
+      {showBrushSettings && !isMinimized && (
+        <div className="fixed right-4 top-20 z-50 bg-black/80 backdrop-blur-md rounded-xl p-4 shadow-xl w-64">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-white text-sm font-medium">Brush Settings</div>
+            <button 
+              className="text-white hover:text-gray-300"
+              onClick={() => setShowBrushSettings(false)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          
+          <div className="mb-4">
+            <div className="text-white text-sm mb-1">Size</div>
+            <div className="flex items-center">
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={brushSize}
+                onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                className="w-full accent-blue-500"
+              />
+              <div className="w-16 h-16 ml-2 bg-transparent rounded-md border border-white/30 flex items-center justify-center">
+                <div 
+                  className="rounded-full bg-white" 
+                  style={{ width: `${brushSize}px`, height: `${brushSize}px` }}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="text-white text-sm mb-1">Opacity</div>
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={brushOpacity}
+              onChange={(e) => setBrushOpacity(parseInt(e.target.value))}
+              className="w-full accent-blue-500"
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Layers panel */}
+      {showLayersPanel && !isMinimized && (
+        <div className="fixed right-4 top-20 z-50 bg-black/80 backdrop-blur-md rounded-xl p-4 shadow-xl w-64">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-white text-sm font-medium">Layers</div>
+            <div className="flex items-center">
+              <button className="w-6 h-6 flex items-center justify-center bg-white/10 rounded-full text-white mr-2">
+                <Plus size={14} />
+              </button>
+              <button 
+                className="text-white hover:text-gray-300"
+                onClick={() => setShowLayersPanel(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-2 bg-white/10 rounded-md">
+              <div className="flex items-center">
+                <button className="mr-2 text-white">
+                  <Eye size={14} />
+                </button>
+                <div className="w-10 h-10 bg-transparent border border-white/30 rounded-md"></div>
+              </div>
+              <div className="text-white text-xs">Layer 1</div>
+            </div>
+            
+            <div className="flex items-center justify-between p-2 bg-red-500/30 rounded-md">
+              <div className="flex items-center">
+                <button className="mr-2 text-white">
+                  <Eye size={14} />
+                </button>
+                <div className="w-10 h-10 bg-red-300 rounded-md"></div>
+              </div>
+              <div className="text-white text-xs">Background</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

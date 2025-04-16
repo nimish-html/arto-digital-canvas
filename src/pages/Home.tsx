@@ -1,20 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import CursorAnimation from '../components/CursorAnimation';
 import Footer from '../components/Footer';
-import AnimeNavBarDemo from '../components/ui/AnimeNavBarDemo';
 import BentoDemo from '../components/features/BentoDemo';
-import DarkModeToggle from '../components/ui/DarkModeToggle';
+import Navbar from '../components/ui/Navbar';
 
 const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden">
       <CursorAnimation />
       
-      <AnimeNavBarDemo />
-      <DarkModeToggle />
+      {/* Standard navbar instead of AnimeNavBarDemo */}
+      <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         <Hero />

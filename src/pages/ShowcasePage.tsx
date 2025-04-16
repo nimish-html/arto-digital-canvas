@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../components/Footer';
-import AnimeNavBarDemo from '../components/ui/AnimeNavBarDemo';
-import DarkModeToggle from '../components/ui/DarkModeToggle';
+import PageNavbar from '../components/ui/PageNavbar';
 import InteractiveBentoGallery from '../components/ui/InteractiveBentoGallery';
 import { showcaseArtworks, sampleVideoUrls } from '../data/mock';
 import { Artwork, MediaItem } from '../types';
@@ -138,8 +137,7 @@ const ShowcasePage: React.FC = () => {
   if (isLoading && page === 1) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-        <AnimeNavBarDemo />
-        <DarkModeToggle />
+        <PageNavbar />
         
         <main className="flex-1 container mx-auto px-4 py-8 mt-20">
           <div className="flex justify-center items-center h-full">
@@ -152,8 +150,7 @@ const ShowcasePage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <AnimeNavBarDemo />
-      <DarkModeToggle />
+      <PageNavbar />
       
       <main className="flex-1 mt-20">
         <InteractiveBentoGallery

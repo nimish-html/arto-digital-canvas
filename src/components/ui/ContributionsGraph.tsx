@@ -2,11 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import drawContributionGraph from 'github-contribution-graph';
 
 interface ContributionsGraphProps {
-  data: Record<string, Array<{
-    done: number;
-    not_done?: number;
-    date: string;
-  }>>;
+  data: Record<string, any>;
   className?: string;
 }
 
@@ -20,26 +16,34 @@ const ContributionsGraph: React.FC<ContributionsGraphProps> = ({ data, className
       // Clear any existing content
       containerRef.current.innerHTML = '';
       
+      // Make sure required theme levels exist in data
+      const requiredLevels = ['level0', 'level1', 'level2', 'level3', 'level4'];
+      for (const level of requiredLevels) {
+        if (!data[level]) {
+          throw new Error(`Missing required level: ${level}`);
+        }
+      }
+      
       // Custom theme that matches the site's theme
       const customTheme = {
         background: 'transparent',
         text: 'var(--text-dark)',
-        grade4: '#6D5BDC', // darkest shade - purple-dark
-        grade3: '#9B89E4', // medium-dark - between purple-dark and purple-medium
-        grade2: '#A794FF', // medium - purple-medium
-        grade1: '#D6CCFF', // light - between purple-medium and purple-light
-        grade0: '#EEEAFF', // lightest - purple-light
+        grade4: data.level4, // darkest shade - purple-dark
+        grade3: data.level3, // medium-dark - between purple-dark and purple-medium
+        grade2: data.level2, // medium - purple-medium
+        grade1: data.level1, // light - between purple-medium and purple-light
+        grade0: data.level0, // lightest - purple-light
       };
       
       // Dark mode theme
       const darkTheme = {
         background: 'transparent',
         text: '#E5E7EB', // light text color
-        grade4: '#6D5BDC', // darkest shade (same as light mode for emphasis)
-        grade3: '#8676CF', // medium-dark (slightly subdued)
-        grade2: '#6059A1', // medium (darker in dark mode)
-        grade1: '#4C487F', // light (darker in dark mode)
-        grade0: '#32304D', // lightest (dark but visible)
+        grade4: data.level4, // darkest shade (same as light mode for emphasis)
+        grade3: data.level3, // medium-dark (slightly subdued)
+        grade2: data.level2, // medium (darker in dark mode)
+        grade1: data.level1, // light (darker in dark mode)
+        grade0: data.level0, // lightest (dark but visible)
       };
       
       // Check if dark mode is active
