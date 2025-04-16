@@ -56,3 +56,12 @@ export interface User {
     dribbble?: string;
   };
 }
+
+export interface MediaItem {
+  id: string;
+  type: 'image' | 'video';
+  title: string;
+  desc: string;
+  url: string;
+  span: string;
+}

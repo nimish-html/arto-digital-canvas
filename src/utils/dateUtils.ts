@@ -52,3 +52,25 @@ export function formatReadableDate(date: Date | string): string {
     day: 'numeric'
   });
 }
+
+// Add days to a date
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+// Subtract days from a date
+export function subDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() - days);
+  return result;
+}
+
+// Format date to month and day
+export function formatMonthDay(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+}

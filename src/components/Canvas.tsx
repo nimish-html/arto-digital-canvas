@@ -42,6 +42,7 @@ const Canvas: React.FC<CanvasProps> = ({
                      drawingMode === 'eraser',
       width: canvasSize.width,
       height: canvasSize.height,
+      backgroundColor: '#ffffff',
     });
 
     fabricCanvasRef.current = canvas;
@@ -776,12 +777,22 @@ const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <motion.div 
-      className="relative bg-white rounded-lg shadow-lg p-2 w-full overflow-hidden"
+      className="relative bg-white dark:bg-gray-800 shadow-lg p-0 w-full h-full overflow-hidden rounded-lg"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <canvas ref={canvasRef} className="border border-gray-200 rounded" />
+      <div className="bg-gradient-to-b from-gray-100 to-white dark:from-gray-750 dark:to-gray-800 h-8 w-full flex items-center px-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex space-x-2">
+          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+        </div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mx-auto">
+          arto-canvas.png
+        </div>
+      </div>
+      <canvas ref={canvasRef} className="w-full h-full" />
       {drawingMode === 'polygon' && (
         <div className="absolute bottom-4 left-4 right-4 bg-indigo-100 text-indigo-800 p-2 rounded-md text-sm text-center">
           Click to add points. Double-click to complete the polygon.
