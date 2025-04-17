@@ -141,7 +141,6 @@ const Navbar: React.FC = () => {
                     <motion.div
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0 }}
                       transition={{ delay: 0.1 }}
                       className="absolute -top-2 left-0 w-2 h-2 text-yellow-300"
                     >
@@ -216,13 +215,16 @@ const Navbar: React.FC = () => {
           <Link to="/canvas">
             <Button 
               variant="outline" 
-              className="font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800"
+              className="font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:text-purple-dark dark:hover:text-purple-medium transition-colors"
             >
               Log In
             </Button>
           </Link>
           <Link to="/canvas">
-            <Button className="font-medium bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600">
+            <Button 
+              variant="outline" 
+              className="font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:text-purple-dark dark:hover:text-purple-medium transition-colors"
+            >
               Sign Up
             </Button>
           </Link>

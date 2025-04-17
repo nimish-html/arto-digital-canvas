@@ -237,8 +237,8 @@ const PageNavbar: React.FC = () => {
               <Button 
                 variant={isCanvasActive ? "default" : "outline"}
                 className={isCanvasActive 
-                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white" 
-                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:bg-gray-800"}
+                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors" 
+                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:text-purple-dark dark:hover:text-purple-medium transition-colors"}
               >
                 Canvas
               </Button>
@@ -247,8 +247,8 @@ const PageNavbar: React.FC = () => {
               <Button 
                 variant={isShowcaseActive ? "default" : "outline"}
                 className={isShowcaseActive 
-                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white" 
-                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:bg-gray-800"}
+                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors" 
+                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:text-purple-dark dark:hover:text-purple-medium transition-colors"}
               >
                 Showcase
               </Button>
@@ -257,8 +257,8 @@ const PageNavbar: React.FC = () => {
               <Button 
                 variant={isProfileActive ? "default" : "outline"}
                 className={isProfileActive 
-                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white" 
-                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:bg-gray-800"}
+                  ? "font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors" 
+                  : "font-medium text-indigo-800 dark:text-indigo-300 border-indigo-700 dark:border-indigo-800 hover:text-purple-dark dark:hover:text-purple-medium transition-colors"}
               >
                 Profile
               </Button>

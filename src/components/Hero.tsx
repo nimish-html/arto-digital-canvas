@@ -65,7 +65,7 @@ export function Hero() {
           </h1>
 
           <p className={`md:text-md mx-auto mb-16 mt-2 max-w-2xl px-6 text-sm sm:px-6 md:max-w-4xl md:px-20 lg:text-lg ${isDarkMode ? 'text-indigo-300' : 'text-gray-600'}`}>
-            Pro Tip: Hover on ARTO on top left
+            pro-tip: hover on arto in top left :)
           </p>
           <div className="flex justify-center gap-2">
             <Link to="/canvas">
