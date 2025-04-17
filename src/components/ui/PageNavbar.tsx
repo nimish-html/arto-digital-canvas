@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './button';
 import { useTheme } from '../../context/ThemeContext';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
 
 const PageNavbar: React.FC = () => {
   const [isLogoHovered, setIsLogoHovered] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const location = useLocation();
-  
+  const navRef = useRef<HTMLDivElement>(null);
+
   // Determine which page is active
   const isCanvasActive = location.pathname === '/canvas';
   const isShowcaseActive = location.pathname === '/showcase';
   const isProfileActive = location.pathname === '/profile';
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node) && isMenuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
   return (
     <motion.nav 
+      ref={navRef}
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -193,7 +206,7 @@ const PageNavbar: React.FC = () => {
         </Link>
         
         {/* Navigation Links with Theme Toggle */}
-        <div className="flex items-center space-x-4">
+        <div className="hidden sm:flex items-center space-x-4">
           {/* Dark Mode Toggle */}
           <motion.button
             className={`p-2 rounded-full transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-white/80 border border-gray-200 shadow'}`}
@@ -252,8 +265,24 @@ const PageNavbar: React.FC = () => {
             </Link>
           </div>
         </div>
+        {/* Mobile menu button */}
+        <div className="sm:hidden flex items-center">
+          <Button variant="ghost" onClick={() => setMenuOpen(!isMenuOpen)} aria-controls="mobile-nav" aria-expanded={isMenuOpen} aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}>
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+        </div>
+        {/* Mobile menu panel */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div id="mobile-nav" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="sm:hidden absolute top-full right-4 w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-50">
+              <Link to="/canvas" onClick={() => setMenuOpen(false)}><Button variant={isCanvasActive ? "default" : "ghost"} className="w-full justify-start">Canvas</Button></Link>
+              <Link to="/showcase" onClick={() => setMenuOpen(false)}><Button variant={isShowcaseActive ? "default" : "ghost"} className="w-full justify-start">Showcase</Button></Link>
+              <Link to="/profile" onClick={() => setMenuOpen(false)}><Button variant={isProfileActive ? "default" : "ghost"} className="w-full justify-start">Profile</Button></Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.nav>
+      </motion.nav>
   );
 };
 
