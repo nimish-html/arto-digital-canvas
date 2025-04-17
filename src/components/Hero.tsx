@@ -10,7 +10,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section id="home">
+    <section id="home" className="relative z-10">
       <div className="animate-fadeIn mt-12 flex flex-col items-center justify-center px-4 text-center md:mt-12">
         <div className="z-10 mb-6 mt-10 sm:justify-center md:mb-4 md:mt-10">
           <div className="relative flex items-center whitespace-nowrap rounded-full border border-indigo-200 bg-indigo-50/70 px-3 py-1 text-xs leading-6 text-indigo-600">
@@ -70,18 +70,14 @@ export function Hero() {
                 Start Drawing
               </Button>
             </Link>
-            <a href="https://unsplash.com/photos/npxXWgQ33ZQ" target="_blank" rel="noreferrer">
+            <Link to="/canvas">
               <Button variant="outline" size="lg" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
                 View Gallery
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
-      <canvas
-        className="pointer-events-none absolute inset-0 z-0 mx-auto"
-        id="canvas"
-      ></canvas>
     </section>
   );
 }

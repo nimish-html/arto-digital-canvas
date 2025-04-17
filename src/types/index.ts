@@ -63,5 +63,4 @@ export interface MediaItem {
   title: string;
   desc: string;
   url: string;
-  span: string;
 }

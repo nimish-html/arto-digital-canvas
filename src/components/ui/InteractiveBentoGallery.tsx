@@ -10,7 +10,6 @@ interface MediaItemType {
     title: string;
     desc: string;
     url: string;
-    span: string;
 }
 
 // MediaItem component renders either a video or image based on item.type
@@ -366,7 +365,7 @@ const InteractiveBentoGallery: React.FC<InteractiveBentoGalleryProps> = ({
                     />
                 ) : (
                     <motion.div
-                        className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3 auto-rows-[100px]"
+                        className="grid grid-cols-2 md:grid-cols-3 gap-4"
                         initial="hidden"
                         animate="visible"
                         exit="hidden"
@@ -382,7 +381,7 @@ const InteractiveBentoGallery: React.FC<InteractiveBentoGalleryProps> = ({
                             <motion.div
                                 key={item.id}
                                 layoutId={`media-${item.id}`}
-                                className={`relative overflow-hidden rounded-xl cursor-move ${item.span}`}
+                                className="aspect-square relative overflow-hidden rounded-xl cursor-move"
                                 onClick={() => !isDragging && setSelectedItem(item)}
                                 variants={{
                                     hidden: { y: 50, scale: 0.9, opacity: 0 },

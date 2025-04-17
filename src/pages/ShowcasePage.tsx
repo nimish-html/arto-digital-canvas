@@ -1,140 +1,199 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../components/Footer';
 import PageNavbar from '../components/ui/PageNavbar';
-import InteractiveBentoGallery from '../components/ui/InteractiveBentoGallery';
-import { showcaseArtworks, sampleVideoUrls } from '../data/mock';
-import { Artwork, MediaItem } from '../types';
+import { sampleVideoUrls } from '../data/mock';
+import { MediaItem } from '../types';
+import ShowcaseGallery from '../components/ui/ShowcaseGallery';
 
-// Map artwork to gallery item 
-const mapArtworkToGalleryItem = (artwork: Artwork, index: number): MediaItem => {
-  let span;
-  
-  // Create different span sizes for a visually interesting bento grid
-  switch (index % 7) {
-    case 0:
-      span = "md:col-span-2 md:row-span-2 sm:col-span-2 sm:row-span-1 row-span-1";
-      break;
-    case 1:
-      span = "md:col-span-1 md:row-span-3 sm:col-span-1 sm:row-span-1 row-span-1";
-      break;
-    case 2:
-      span = "md:col-span-1 md:row-span-2 sm:col-span-1 sm:row-span-1 row-span-1";
-      break;
-    case 3:
-      span = "md:col-span-1 md:row-span-2 sm:col-span-2 sm:row-span-1 row-span-1";
-      break;
-    case 4:
-      span = "md:col-span-2 md:row-span-1 sm:col-span-2 sm:row-span-1 row-span-1";
-      break;
-    case 5:
-      span = "md:col-span-2 md:row-span-2 sm:col-span-1 sm:row-span-2 row-span-1";
-      break;
-    case 6:
-      span = "md:col-span-1 md:row-span-1 sm:col-span-1 sm:row-span-1 row-span-1";
-      break;
-    default:
-      span = "md:col-span-1 md:row-span-1 sm:col-span-1 sm:row-span-1 row-span-1";
+// Curated MS Paint style and digital art platform artworks
+const artworkImages = [
+  {
+    id: 'art1',
+    url: 'https://images.unsplash.com/photo-1605106702734-205df224ecce?w=800&auto=format&fit=crop',
+    title: 'Colorful Geometry',
+    creator: 'David Park',
+    description: 'Digital painting with vibrant colors'
+  },
+  {
+    id: 'art2',
+    url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop',
+    title: 'Digital Sunset',
+    creator: 'Alex Johnson',
+    description: 'MS Paint inspired landscape'
+  },
+  {
+    id: 'art3',
+    url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop',
+    title: 'Gradient Waves',
+    creator: 'Elena Diaz',
+    description: 'Smooth gradient art reminiscent of MS Paint'
+  },
+  {
+    id: 'art4',
+    url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop',
+    title: 'Colorful Splash',
+    creator: 'Michael Brown',
+    description: 'Digital paint splatter technique'
+  },
+  {
+    id: 'art6',
+    url: 'https://images.unsplash.com/photo-1533713692156-f70938dc0d54?q=80&w=1974&auto=format&fit=crop',
+    title: 'Ocean Depths',
+    creator: 'Emma Thompson',
+    description: 'Digital painting with blue tones'
+  },
+  {
+    id: 'art7',
+    url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop',
+    title: 'Abstract Squares',
+    creator: 'Sara Lee',
+    description: 'MS Paint style geometric composition'
+  },
+  {
+    id: 'art8',
+    url: 'https://images.unsplash.com/photo-1608501078713-8e445a709b39?q=80&w=2070&auto=format&fit=crop',
+    title: 'Neon Dreams',
+    creator: 'James Wilson',
+    description: 'Digital painting with neon effects'
+  },
+  {
+    id: 'art9',
+    url: 'https://images.unsplash.com/photo-1558470598-a5dda9640f68?w=800&auto=format&fit=crop',
+    title: 'Digital Sky',
+    creator: 'Alex Johnson',
+    description: 'MS Paint style sky scene'
+  },
+  {
+    id: 'art10',
+    url: 'https://images.unsplash.com/photo-1484589065579-248aad0d8b13?w=800&auto=format&fit=crop',
+    title: 'Pastel Composition',
+    creator: 'Michael Brown',
+    description: 'Digital painting with pastel colors'
+  },
+  {
+    id: 'art12',
+    url: 'https://images.unsplash.com/photo-1605106702734-205df224ecce?w=800&auto=format&fit=crop',
+    title: 'Geometric Study',
+    creator: 'Olivia Martinez',
+    description: 'Inspired by digital painting fundamentals'
+  },
+  {
+    id: 'art13',
+    url: 'https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?q=80&w=2080&auto=format&fit=crop',
+    title: 'Geometric Poster',
+    creator: 'Emma Thompson',
+    description: 'MS Paint inspired digital poster'
+  },
+  {
+    id: 'art15',
+    url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop',
+    title: 'Evening Horizon',
+    creator: 'Chris Lee',
+    description: 'Digital landscape with evening colors'
+  },
+  // Additional artworks for demonstrating "Show more" functionality
+  {
+    id: 'art16',
+    url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=1974&auto=format&fit=crop',
+    title: 'Chromatic Dreams',
+    creator: 'Alex Johnson',
+    description: 'Vibrant exploration of color theory'
+  },
+  {
+    id: 'art17',
+    url: 'https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=1979&auto=format&fit=crop',
+    title: 'Fluid Expressions',
+    creator: 'Maya Chen',
+    description: 'Abstract fluid art created digitally'
+  },
+  {
+    id: 'art18',
+    url: 'https://images.unsplash.com/photo-1580893246395-52aead8960dc?w=800&auto=format&fit=crop',
+    title: 'Simple House',
+    creator: 'Emma Thompson',
+    description: 'Minimalist digital drawing'
+  },
+  {
+    id: 'art19',
+    url: 'https://images.unsplash.com/photo-1603645635960-66172c73f392?w=800&auto=format&fit=crop',
+    title: 'Block Colors',
+    creator: 'David Park',
+    description: 'Study of block color composition'
+  },
+  {
+    id: 'art20',
+    url: 'https://images.unsplash.com/photo-1577017040065-650ee4d43339?w=800&auto=format&fit=crop',
+    title: 'Flat Squares',
+    creator: 'James Wilson',
+    description: 'Geometric exploration in digital space'
+  },
+  {
+    id: 'art21',
+    url: 'https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=800&auto=format&fit=crop',
+    title: 'Digital Circles',
+    creator: 'Sara Lee',
+    description: 'Circular compositions in digital art'
+  },
+  {
+    id: 'art22',
+    url: 'https://images.unsplash.com/photo-1581299893039-478d1b5ce775?w=800&auto=format&fit=crop',
+    title: 'Squiggly Lines',
+    creator: 'Michael Brown',
+    description: 'Expressive line work in digital format'
+  },
+  {
+    id: 'art23',
+    url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop',
+    title: 'Basic Pattern',
+    creator: 'Alex Johnson',
+    description: 'Simple repeating patterns'
+  },
+  {
+    id: 'art24',
+    url: 'https://images.unsplash.com/photo-1593085512500-5d55148d6f0d?w=800&auto=format&fit=crop',
+    title: 'Cute Face',
+    creator: 'Maya Chen',
+    description: 'Digital character design'
   }
-  
-  return {
-    id: artwork.id,
-    type: "image", // All our mock data are images for now
-    title: artwork.title,
-    desc: `By ${artwork.userName} • ${artwork.likes} likes • ${artwork.views} views`,
-    url: artwork.imageUrl,
-    span
-  };
-};
+];
 
 const ShowcasePage: React.FC = () => {
   const [galleryItems, setGalleryItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   
-  // Load initial data
+  // Load all data at once
   useEffect(() => {
     const timer = setTimeout(() => {
-      const initialItems = showcaseArtworks.slice(0, 12).map((artwork, index) => {
-        // Mix in some video items for variety
-        if (index % 8 === 2) {
+      const items = artworkImages.map((image, index) => {
+        // Mix in a video item occasionally for variety
+        if (index === 3 || index === 8 || index === 16) {
           return {
-            id: `video-${artwork.id}`,
+            id: `video-${image.id}`,
             type: "video",
-            title: artwork.title,
-            desc: `By ${artwork.userName} • Video showcase`,
-            url: sampleVideoUrls[index % sampleVideoUrls.length],
-            span: "md:col-span-2 md:row-span-2 sm:col-span-2 sm:row-span-2 row-span-1"
+            title: image.title,
+            desc: `By ${image.creator} • Digital art process video`,
+            url: sampleVideoUrls[index % sampleVideoUrls.length]
           };
         }
-        return mapArtworkToGalleryItem(artwork, index);
+        
+        return {
+          id: image.id,
+          type: "image", 
+          title: image.title,
+          desc: `By ${image.creator} • ${image.description}`,
+          url: image.url
+        };
       });
       
-      setGalleryItems(initialItems);
+      setGalleryItems(items);
       setIsLoading(false);
     }, 800);
     
     return () => clearTimeout(timer);
   }, []);
   
-  // Load more items on scroll
-  const loadMoreItems = useCallback(() => {
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    
-    // Simulate loading more data
-    setTimeout(() => {
-      // Calculate the start index for the next batch
-      const startIndex = (page * 12) % showcaseArtworks.length;
-      
-      // Get the next batch of artwork data
-      const nextBatch = showcaseArtworks.slice(startIndex, startIndex + 12);
-      
-      // If we've wrapped around and there aren't enough items, get some from the beginning
-      const itemsNeeded = 12 - nextBatch.length;
-      const additionalItems = itemsNeeded > 0 ? showcaseArtworks.slice(0, itemsNeeded) : [];
-      
-      // Combine the next batch with any additional items needed
-      const artworksToAdd = [...nextBatch, ...additionalItems];
-      
-      // Generate more items by mapping artwork data to gallery items
-      const moreItems = artworksToAdd.map((artwork, index) => {
-        const adjustedIndex = startIndex + index;
-        
-        // Mix in a video occasionally
-        if (adjustedIndex % 10 === 3) {
-          return {
-            id: `video-${artwork.id}-${page}`,
-            type: "video",
-            title: `${artwork.title} (Edition ${page})`,
-            desc: `By ${artwork.userName} • Video showcase`,
-            url: sampleVideoUrls[(page + index) % sampleVideoUrls.length],
-            span: "md:col-span-2 md:row-span-2 sm:col-span-2 sm:row-span-2 row-span-1"
-          };
-        }
-        
-        return {
-          ...mapArtworkToGalleryItem(artwork, adjustedIndex),
-          id: `${artwork.id}-${page}-${index}`,
-          title: `${artwork.title} (Edition ${page})`,
-        };
-      });
-      
-      setGalleryItems(prev => [...prev, ...moreItems]);
-      setPage(prev => prev + 1);
-      
-      // After page 6, we'll say there's no more data (since we have 60 original artworks)
-      if (page >= 6) {
-        setHasMore(false);
-      }
-      
-      setIsLoading(false);
-    }, 1000);
-  }, [page, isLoading]);
-  
-  if (isLoading && page === 1) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
         <PageNavbar />
@@ -153,12 +212,10 @@ const ShowcasePage: React.FC = () => {
       <PageNavbar />
       
       <main className="flex-1 mt-20">
-        <InteractiveBentoGallery
-          mediaItems={galleryItems}
+        <ShowcaseGallery
+          items={galleryItems}
           title="Digital Art Showcase"
-          description="Explore our vibrant collection of digital artworks"
-          onLoadMore={loadMoreItems}
-          hasMore={hasMore}
+          description="Explore a curated collection of MS Paint style digital art and paintings"
         />
       </main>
       

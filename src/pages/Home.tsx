@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import CursorAnimation from '../components/CursorAnimation';
 import Footer from '../components/Footer';
-import BentoDemo from '../components/features/BentoDemo';
+import { FeaturesSectionWithHoverEffects } from '../components/features/FeaturesSectionWithHoverEffects';
 import Navbar from '../components/ui/Navbar';
+import { Button } from '../components/ui/button';
 
 const Home: React.FC = () => {
   return (
@@ -21,13 +22,13 @@ const Home: React.FC = () => {
         <section id="features" className="py-20 relative z-10">
           <div className="text-center mb-16">
             <motion.h2 
-              className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-gray-100"
+              className="text-3xl md:text-5xl font-semibold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6 }}
             >
-              Powerful Features
+              Your complete toolkit
             </motion.h2>
             <motion.p 
               className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
@@ -47,15 +48,14 @@ const Home: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="w-full max-w-6xl mx-auto"
           >
-            <BentoDemo />
+            <FeaturesSectionWithHoverEffects />
           </motion.div>
           
           <div className="text-center mt-16">
-            <Link 
-              to="/canvas"
-              className="px-6 py-3 bg-indigo-600 dark:bg-indigo-700 text-white font-medium rounded-full text-lg shadow-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors inline-block"
-            >
-              Try It Now
+            <Link to="/canvas">
+              <Button variant="default" size="lg" className="bg-purple-dark hover:bg-purple-800">
+                Try It Now
+              </Button>
             </Link>
           </div>
         </section>

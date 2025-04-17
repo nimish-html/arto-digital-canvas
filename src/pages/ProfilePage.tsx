@@ -24,25 +24,15 @@ import { formatReadableDate } from '../utils/dateUtils';
 import { useNavigate } from 'react-router-dom';
 import PageNavbar from '../components/ui/PageNavbar';
 import CursorAnimation from '../components/CursorAnimation';
-import ContributionsGraph from '../components/ui/ContributionsGraph';
-import { generateContributionData } from '../utils/generateContributionData';
 import ErrorBoundary from '../components/ui/ErrorBoundary';
+import AnalyticsChart from '../components/ui/AnalyticsChart';
+import { ShowMoreButton } from '../components/ui/show-more-button';
 
 const ProfilePage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState<'artworks' | 'collections' | 'likes'>('artworks');
-  const [contributionData, setContributionData] = useState<any>({});
   const navigate = useNavigate();
-  
-  // Generate mock contributions data when component mounts
-  useEffect(() => {
-    try {
-      setContributionData(generateContributionData());
-    } catch (error) {
-      console.error("Error generating contribution data:", error);
-      setContributionData({});
-    }
-  }, []);
+  const [visibleArtworks, setVisibleArtworks] = useState<number>(6); // Show initial 6 artworks
   
   // In a real app, you would fetch data based on the selected tab
   const getTabContent = () => {
@@ -58,7 +48,14 @@ const ProfilePage: React.FC = () => {
     }
   };
   
-  const displayedArtworks = getTabContent();
+  const allArtworks = getTabContent();
+  const displayedArtworks = allArtworks.slice(0, visibleArtworks);
+  const hasMoreArtworks = visibleArtworks < allArtworks.length;
+  
+  // Function to load more artworks
+  const showMoreArtworks = () => {
+    setVisibleArtworks(prev => Math.min(prev + 6, allArtworks.length));
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden flex flex-col">
@@ -209,36 +206,22 @@ const ProfilePage: React.FC = () => {
           </div>
         </motion.div>
         
-        {/* Contribution Graph */}
+        {/* Analytics Chart - Replacing the contribution graph */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-md p-4 md:p-6 mb-8 border border-indigo-100 dark:border-gray-700"
+          className="mb-8"
         >
-          <div className="flex items-center mb-2">
-            <BarChart className="mr-2 h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">102 Contributions in 2025</h2>
-          </div>
-          
           <ErrorBoundary
             fallback={
-              <div className="p-4 text-center">
-                <p className="text-amber-600 dark:text-amber-400">Unable to load contribution graph</p>
+              <div className="p-4 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-md">
+                <p className="text-amber-600 dark:text-amber-400">Unable to load analytics chart</p>
               </div>
             }
           >
-            <ContributionsGraph data={contributionData} />
+            <AnalyticsChart className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-indigo-100 dark:border-gray-700" />
           </ErrorBoundary>
-          
-          <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
-            <p>
-              Track your digital art creation activity. Each box represents a day — the darker the color, the more artworks created.
-            </p>
-            <p className="mt-1 text-xs">
-              Pro Tip: Create art regularly to maintain your streaks and improve your skills!
-            </p>
-          </div>
         </motion.div>
         
         {/* Content Tabs */}
@@ -327,29 +310,39 @@ const ProfilePage: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             {displayedArtworks.length > 0 ? (
-              <div className={`${
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
-                  : 'flex flex-col space-y-4'
-              }`}>
-                {displayedArtworks.map((artwork, index) => (
-                  <motion.div
-                    key={artwork.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      delay: index * 0.05,
-                      duration: 0.3,
-                      ease: "easeOut"
-                    }}
-                  >
-                    <ArtworkCard 
-                      artwork={artwork} 
-                      variant={viewMode} 
-                    />
-                  </motion.div>
-                ))}
-              </div>
+              <>
+                <div className={`${
+                  viewMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
+                    : 'flex flex-col space-y-4'
+                }`}>
+                  {displayedArtworks.map((artwork, index) => (
+                    <motion.div
+                      key={artwork.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        delay: index * 0.05,
+                        duration: 0.3,
+                        ease: "easeOut"
+                      }}
+                    >
+                      <ArtworkCard 
+                        artwork={artwork} 
+                        variant={viewMode} 
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Show More Button */}
+                {hasMoreArtworks && (
+                  <ShowMoreButton
+                    onClick={showMoreArtworks}
+                    className="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 mt-6"
+                  />
+                )}
+              </>
             ) : (
               <EmptyState 
                 type="artworks" 

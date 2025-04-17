@@ -13,6 +13,8 @@ import {
   Plus as PlusIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from './ui/button';
+import { ButtonGroup } from './ui/button-group';
 
 interface CanvasProps {
   onFullscreenChange?: (isFullscreen: boolean) => void;
@@ -49,6 +51,13 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
     // Notify parent component about fullscreen change
     if (onFullscreenChange) {
       onFullscreenChange(isFullscreen);
+    }
+    
+    // Force an immediate resize when fullscreen mode changes
+    if (isFullscreen) {
+      setTimeout(() => {
+        updateCanvasSize();
+      }, 50);
     }
   }, [isFullscreen, isMinimized, onFullscreenChange]);
   
@@ -90,11 +99,11 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
     // Check if dimensions are valid before setting
     if (newWidth > 0 && newHeight > 0) {
       fabricCanvasRef.current.setDimensions({ width: newWidth, height: newHeight });
-      // Might need to adjust viewbox if zooming/panning is implemented later
-      // fabricCanvasRef.current.calcOffset(); 
       fabricCanvasRef.current.renderAll();
+      
+      console.log(`Canvas resized to ${newWidth}x${newHeight}`);
     } else {
-      // console.warn("Attempted to resize canvas with zero dimensions."); // Debug log
+      console.warn("Attempted to resize canvas with zero dimensions.");
     }
   }, []); // Empty dependency array
 
@@ -171,16 +180,15 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
       canvas.dispose();
       window.removeEventListener('resize', handleResize);
     };
-  // Add updateCanvasSize dependency
   }, [activeColor, brushSize, updateCanvasSize]);
   
-  // Update canvas size when fullscreen or minimized state changes (simplified)
-  // This ensures size is correct if component mounts directly into a state
-  // or if a resize happens *without* the main animation.
-  // The animation transition resize is handled by onAnimationComplete.
+  // Update canvas size when fullscreen or minimized state changes
   useEffect(() => {
-    updateCanvasSize();
-  // Add updateCanvasSize dependency
+    const resizeTimer = setTimeout(() => {
+      updateCanvasSize();
+    }, 100);
+    
+    return () => clearTimeout(resizeTimer);
   }, [isFullscreen, isMinimized, updateCanvasSize]);
 
   // Update brush when color or size changes
@@ -294,6 +302,13 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
     } else {
       setIsFullscreen(true);
     }
+    
+    // Force a canvas resize after state update
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        updateCanvasSize();
+      });
+    });
   };
   
   // Handle download
@@ -362,7 +377,7 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
         </>
       )}
       
-      <div className="max-w-5xl mx-auto relative pb-20">
+      <div className={`max-w-5xl mx-auto relative pb-20 ${isFullscreen ? 'max-w-none w-full h-full p-0 m-0' : ''}`}>
         {/* Canvas container with resizable modes */}
         <AnimatePresence>
           <motion.div 
@@ -371,7 +386,7 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
             onAnimationComplete={updateCanvasSize}
             className={`relative z-30 overflow-hidden ${
               isFullscreen 
-                ? 'fixed inset-0' 
+                ? 'fixed inset-0 w-screen h-screen' 
                 : isMinimized
                   ? 'fixed bottom-4 right-4 w-80 h-40'
                   : 'bg-gradient-to-r from-indigo-50/50 to-white border-[3px] border-indigo-200 shadow-[0_0_15px_rgba(109,91,220,0.15)] [mask-image:radial-gradient(800rem_96rem_at_center,white,transparent)] dark:from-gray-800/50 dark:to-gray-800 dark:border-indigo-700 dark:shadow-[0_0_15px_rgba(109,91,220,0.07)]'
@@ -383,17 +398,21 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
               opacity: 0, 
               scale: 0.9,
               borderRadius: 0, // No border radius for sharp edges
-              width: isFullscreen ? '100%' : isMinimized ? '320px' : '100%',
-              height: isFullscreen ? '100%' : isMinimized ? '180px' : '70vh',
+              width: isFullscreen ? '100vw' : isMinimized ? '320px' : '100%',
+              height: isFullscreen ? '100vh' : isMinimized ? '180px' : '70vh',
             }}
             animate={{ 
               opacity: 1, 
               scale: 1,
               borderRadius: 0, // Ensure no border radius in any state for sharp corners
-              width: isFullscreen ? '100%' : isMinimized ? '320px' : '100%',
-              height: isFullscreen ? '100%' : isMinimized ? '180px' : '70vh',
+              width: isFullscreen ? '100vw' : isMinimized ? '320px' : '100%',
+              height: isFullscreen ? '100vh' : isMinimized ? '180px' : '70vh',
               x: canvasPosition.x,
-              y: canvasPosition.y
+              y: canvasPosition.y,
+              top: isFullscreen ? 0 : undefined,
+              left: isFullscreen ? 0 : undefined,
+              right: isFullscreen ? 0 : undefined,
+              bottom: isFullscreen ? 0 : undefined,
             }}
             transition={{ 
               type: "spring",
@@ -493,146 +512,32 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
           </motion.div>
         </AnimatePresence>
         
-        {/* Action Buttons - Now OUTSIDE the canvas container with increased spacing */}
+        {/* Action Buttons - Now using ButtonGroup instead of individual buttons */}
         {!isMinimized && !isFullscreen && (
-          <div className="flex justify-end mt-9.4 space-x-6">
-            {/* Share Button */}
-            <motion.div
-              className="group relative"
-              whileHover={{ 
-                scale: 1.15,
-                rotate: [0, -5, 5, -5, 5, 0],
-                transition: { 
-                  scale: { duration: 0.2 },
-                  rotate: { duration: 0.5, ease: "easeInOut" }
-                }
-              }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <button
-                onClick={shareCanvas}
-                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg overflow-hidden"
+          <div className="flex justify-end mt-9.4">
+            <ButtonGroup separated={true} className="mt-4">
+              <Button 
+                onClick={shareCanvas} 
+                className="bg-purple-dark hover:bg-purple-800 text-white font-medium"
               >
-                <Share2 size={24} />
-                
-                {/* Animated gradient overlay - only visible on hover */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-400/30 to-indigo-500/0"
-                  initial={{ x: "-100%" }}
-                  whileHover={{
-                    x: ["100%", "-100%"],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-              </button>
-              
-              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                <Share2 size={18} className="mr-2" />
                 Share
-              </div>
-            </motion.div>
-            
-            {/* Add to Showcase Button */}
-            <motion.div
-              className="group relative"
-              whileHover={{ 
-                scale: 1.15,
-                y: [0, -5, 5, -5, 0],
-                transition: { 
-                  scale: { duration: 0.2 },
-                  y: { duration: 0.5, ease: "easeInOut" }
-                }
-              }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <button
-                onClick={addToShowcase}
-                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-green-500 text-white shadow-lg overflow-hidden"
+              </Button>
+              <Button 
+                onClick={addToShowcase} 
+                className="bg-purple-dark hover:bg-purple-800 text-white font-medium"
               >
-                <PlusIcon size={24} />
-                
-                {/* Animated ripple effect - only visible on hover */}
-                <motion.div 
-                  className="absolute inset-0 border-4 border-green-300 rounded-full"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  whileHover={{
-                    scale: [0.8, 1.2],
-                    opacity: [0, 0.5, 0],
-                    transition: {
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeOut"
-                    }
-                  }}
-                />
-              </button>
-              
-              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                <PlusIcon size={18} className="mr-2" />
                 Add to Showcase
-              </div>
-            </motion.div>
-            
-            {/* Download Button */}
-            <motion.div
-              className="group relative"
-              whileHover={{ 
-                scale: 1.15,
-                x: [0, 5, -5, 5, 0],
-                transition: { 
-                  scale: { duration: 0.2 },
-                  x: { duration: 0.5, ease: "easeInOut" }
-                }
-              }}
-              whileTap={{ scale: 0.9, y: 5 }}
-            >
-              <button
-                onClick={downloadCanvas}
-                className="relative w-14 h-14 flex items-center justify-center rounded-full bg-purple-500 text-white shadow-lg overflow-hidden"
+              </Button>
+              <Button 
+                onClick={downloadCanvas} 
+                className="bg-purple-dark hover:bg-purple-800 text-white font-medium"
               >
-                <Download size={24} />
-                
-                {/* Animated particles - only visible on hover */}
-                <AnimatePresence>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                  >
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <motion.div 
-                        key={i}
-                        className="absolute w-2 h-2 bg-purple-200 rounded-full"
-                        initial={{ 
-                          x: 0, 
-                          y: 0,
-                          opacity: 0 
-                        }}
-                        animate={{
-                          x: [0, (i % 2 === 0 ? -15 : 15) * Math.random()],
-                          y: [0, -20 * Math.random() - 10],
-                          opacity: [0, 0.8, 0],
-                        }}
-                        transition={{
-                          duration: 1 + Math.random(),
-                          repeat: Infinity,
-                          delay: i * 0.3,
-                        }}
-                        style={{
-                          top: '50%',
-                          left: '50%',
-                        }}
-                      />
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
-              </button>
-              
-              <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                <Download size={18} className="mr-2" />
                 Download
-              </div>
-            </motion.div>
+              </Button>
+            </ButtonGroup>
           </div>
         )}
       </div>

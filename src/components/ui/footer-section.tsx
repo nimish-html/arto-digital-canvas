@@ -14,6 +14,7 @@ import {
 } from "./tooltip"
 import { Facebook, Instagram, Linkedin, Moon, Send, Sun, Twitter } from "lucide-react"
 import { useTheme } from "../../context/ThemeContext"
+import { Link } from "react-router-dom"
 
 function Footerdemo() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -48,21 +49,21 @@ function Footerdemo() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
             <nav className="space-y-2 text-sm">
-              <a href="#" className="block transition-colors hover:text-primary">
+              <Link to="/canvas" className="block transition-colors hover:text-primary">
                 Home
-              </a>
-              <a href="#" className="block transition-colors hover:text-primary">
+              </Link>
+              <Link to="/canvas" className="block transition-colors hover:text-primary">
                 About Us
-              </a>
-              <a href="#" className="block transition-colors hover:text-primary">
+              </Link>
+              <Link to="/canvas" className="block transition-colors hover:text-primary">
                 Services
-              </a>
-              <a href="#" className="block transition-colors hover:text-primary">
+              </Link>
+              <Link to="/canvas" className="block transition-colors hover:text-primary">
                 Products
-              </a>
-              <a href="#" className="block transition-colors hover:text-primary">
+              </Link>
+              <Link to="/canvas" className="block transition-colors hover:text-primary">
                 Contact
-              </a>
+              </Link>
             </nav>
           </div>
           <div>
@@ -80,10 +81,12 @@ function Footerdemo() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full">
-                      <Facebook className="h-4 w-4" />
-                      <span className="sr-only">Facebook</span>
-                    </Button>
+                    <Link to="/canvas">
+                      <Button variant="outline" size="icon" className="rounded-full">
+                        <Facebook className="h-4 w-4" />
+                        <span className="sr-only">Facebook</span>
+                      </Button>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Follow us on Facebook</p>
@@ -93,10 +96,12 @@ function Footerdemo() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full">
-                      <Twitter className="h-4 w-4" />
-                      <span className="sr-only">Twitter</span>
-                    </Button>
+                    <Link to="/canvas">
+                      <Button variant="outline" size="icon" className="rounded-full">
+                        <Twitter className="h-4 w-4" />
+                        <span className="sr-only">Twitter</span>
+                      </Button>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Follow us on Twitter</p>
@@ -106,10 +111,12 @@ function Footerdemo() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full">
-                      <Instagram className="h-4 w-4" />
-                      <span className="sr-only">Instagram</span>
-                    </Button>
+                    <Link to="/canvas">
+                      <Button variant="outline" size="icon" className="rounded-full">
+                        <Instagram className="h-4 w-4" />
+                        <span className="sr-only">Instagram</span>
+                      </Button>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Follow us on Instagram</p>
@@ -119,10 +126,12 @@ function Footerdemo() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full">
-                      <Linkedin className="h-4 w-4" />
-                      <span className="sr-only">LinkedIn</span>
-                    </Button>
+                    <Link to="/canvas">
+                      <Button variant="outline" size="icon" className="rounded-full">
+                        <Linkedin className="h-4 w-4" />
+                        <span className="sr-only">LinkedIn</span>
+                      </Button>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Connect with us on LinkedIn</p>
@@ -149,15 +158,15 @@ function Footerdemo() {
             © 2024 Arto. All rights reserved.
           </p>
           <nav className="flex gap-4 text-sm">
-            <a href="#" className="transition-colors hover:text-primary">
+            <Link to="/canvas" className="transition-colors hover:text-primary">
               Privacy Policy
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
+            </Link>
+            <Link to="/canvas" className="transition-colors hover:text-primary">
               Terms of Service
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
+            </Link>
+            <Link to="/canvas" className="transition-colors hover:text-primary">
               Cookie Settings
-            </a>
+            </Link>
           </nav>
         </div>
       </div>

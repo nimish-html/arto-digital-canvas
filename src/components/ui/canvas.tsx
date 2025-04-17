@@ -173,10 +173,15 @@ function render() {
 }
 
 function resizeCanvas() {
-  // @ts-ignore
-  ctx.canvas.width = window.innerWidth - 20;
-  // @ts-ignore
-  ctx.canvas.height = window.innerHeight;
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    if (ctx && ctx.canvas) {
+      // @ts-ignore
+      ctx.canvas.width = window.innerWidth;
+      // @ts-ignore
+      ctx.canvas.height = window.innerHeight;
+    }
+  }
 }
 
 // @ts-ignore
