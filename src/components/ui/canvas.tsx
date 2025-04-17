@@ -15,7 +15,7 @@ n.prototype = {
     // @ts-ignore
     this.amplitude = e.amplitude || 1;
   },
-  update: function () {
+  update() {
     return (
       // @ts-ignore
       (this.phase += this.frequency),
@@ -53,7 +53,7 @@ Line.prototype = {
       this.nodes.push(t);
     }
   },
-  update: function () {
+  update() {
     // @ts-ignore
     let e = this.spring,
       // @ts-ignore

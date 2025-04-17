@@ -28,7 +28,7 @@ const Home: React.FC = () => {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6 }}
             >
-              Your complete toolkit
+              Create. Transform. Inspire.
             </motion.h2>
             <motion.p 
               className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
@@ -37,7 +37,7 @@ const Home: React.FC = () => {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              Everything you need to create amazing digital art
+              Unleash your artistic vision with powerful tools designed for the future of digital creation
             </motion.p>
           </div>
           

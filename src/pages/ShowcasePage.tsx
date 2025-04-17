@@ -181,7 +181,7 @@ const ShowcasePage: React.FC = () => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
         <PageNavbar />
         
         <main className="flex-1 container mx-auto px-4 py-8 mt-20">
@@ -194,14 +194,14 @@ const ShowcasePage: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <PageNavbar />
       
       <main className="flex-1 mt-20">
         <ShowcaseGallery
           items={galleryItems}
-          title="Digital Art Showcase"
-          description="top artworks made with love from our community"
+          title="Gallery of Excellence"
+          description="Extraordinary creations from visionary artists worldwide"
         />
       </main>
       

@@ -16,7 +16,7 @@ export function Hero() {
           <div className="relative flex items-center whitespace-nowrap rounded-full border border-indigo-200 bg-indigo-50/70 px-3 py-1 text-xs leading-6 text-indigo-600">
             <svg className="h-5 p-1 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg> Introducing ARTO
+            </svg> ARTO. Now in beta.
             <Link
               to="/canvas"
               className="hover:text-indigo-800 ml-1 flex items-center font-semibold"
@@ -50,29 +50,28 @@ export function Hero() {
                   strokeWidth={3}
                   className="text-purple-dark absolute -bottom-5 -right-5 h-10 w-10"
                 />
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Your complete platform for Digital Art.</span>
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Art. Reimagined.</span>
               </h1>
             </div>
           </div>
 
           <h1 className="mt-8 text-2xl md:text-2xl">
-            Welcome to our creative playground! Create amazing{" "}
-            <span className="text-purple-dark font-bold">digital art</span>
+            <span className="text-purple-dark font-bold">Revolutionary tools.</span>{" "}
+            <span className="text-gray-800">Limitless creativity.</span>
           </h1>
 
           <p className="md:text-md mx-auto mb-16 mt-2 max-w-2xl px-6 text-sm text-gray-600 sm:px-6 md:max-w-4xl md:px-20 lg:text-lg">
-            Craft enchanting visuals with our powerful drawing tools, create stunning designs,
-            and unleash your creativity with our intuitive canvas.
+            Professional-grade tools. Intuitive interface. Infinite possibilities.
           </p>
           <div className="flex justify-center gap-2">
             <Link to="/canvas">
               <Button variant="default" size="lg" className="bg-purple-dark hover:bg-purple-800">
-                Start Drawing
+                Create Now
               </Button>
             </Link>
             <Link to="/canvas">
               <Button variant="outline" size="lg" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
-                View Gallery
+                Explore Art
               </Button>
             </Link>
           </div>

@@ -23,7 +23,7 @@ import { userArtworks, currentUser } from '../data/mock';
 import { formatReadableDate } from '../utils/dateUtils';
 import { useNavigate } from 'react-router-dom';
 import PageNavbar from '../components/ui/PageNavbar';
-import CursorAnimation from '../components/CursorAnimation';
+
 import ErrorBoundary from '../components/ui/ErrorBoundary';
 import AnalyticsChart from '../components/ui/AnalyticsChart';
 import { ShowMoreButton } from '../components/ui/show-more-button';
@@ -59,7 +59,6 @@ const ProfilePage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden flex flex-col">
-      <CursorAnimation />
       
       <PageNavbar />
       
@@ -94,9 +93,9 @@ const ProfilePage: React.FC = () => {
                     <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
                       {currentUser.name}
                     </h1>
-                    <div className="flex items-center mt-1 text-gray-500 dark:text-gray-400 text-sm">
+                    <div className="flex items-center mt-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
                       <Calendar size={14} className="mr-1" />
-                      Joined {formatReadableDate(currentUser.joinDate)}
+                      Creating since {formatReadableDate(currentUser.joinDate)}
                     </div>
                   </div>
                   
@@ -269,15 +268,15 @@ const ProfilePage: React.FC = () => {
           </h2>
           
           <div className="flex items-center space-x-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-1.5 rounded-full"
+            <Button
+              variant="default"
+              size="lg"
               onClick={() => navigate('/canvas')}
+              className="bg-purple-dark hover:bg-purple-800"
             >
-              <Plus size={16} className="mr-1" />
+              <Plus size={18} className="mr-1" />
               Create New
-            </motion.button>
+            </Button>
             
             <div className="flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-md shadow-sm border border-indigo-100 dark:border-gray-700">
               <Button

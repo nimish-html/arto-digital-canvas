@@ -28,7 +28,7 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
   };
   
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
       <div className="mb-8 text-center">
         <motion.h1
           className="text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent 
@@ -67,7 +67,7 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
         {displayedItems.map((item, index) => (
           <motion.div
             key={item.id}
-            className="relative overflow-hidden rounded-xl aspect-square"
+            className="relative overflow-hidden rounded-xl aspect-square bg-white dark:bg-gray-700 shadow-md"
             variants={{
               hidden: { y: 50, opacity: 0 },
               visible: {
@@ -109,7 +109,7 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
         {fillerItems.map((item, idx) => (
           <motion.div
             key={`filler-${idx}`}
-            className="relative overflow-hidden rounded-xl aspect-square"
+            className="relative overflow-hidden rounded-xl aspect-square bg-white dark:bg-gray-700 shadow-md"
             variants={{
               hidden: { y: 50, opacity: 0 },
               visible: {
