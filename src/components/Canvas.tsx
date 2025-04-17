@@ -77,14 +77,13 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
     '#b91c1c', '#d97706', '#15803d', '#0e7490', '#1d4ed8', '#7e22ce', '#c2410c'
   ];
   
-  // Tools from the screenshot
+  // Tools with image paths
   const tools = [
-    { id: 'brush', icon: '🖌️', tooltip: 'Brush' },
-    { id: 'line', icon: '➖', tooltip: 'Line' },
-    { id: 'arrow', icon: '➡️', tooltip: 'Arrow' },
-    { id: 'shape', icon: '◻️', tooltip: 'Shape' },
-    { id: 'text', icon: 'T', tooltip: 'Text' },
-    { id: 'eraser', icon: '🧽', tooltip: 'Eraser' }
+    { id: 'brush', imagePath: '/Untitled design (15).png', tooltip: 'Brush' },
+    { id: 'line', imagePath: '/Untitled design (16).png', tooltip: 'Line' },
+    { id: 'arrow', imagePath: '/Untitled design (17).png', tooltip: 'Arrow' },
+    { id: 'eraser', imagePath: '/Untitled design (19).png', tooltip: 'Eraser' },
+    { id: 'shape', imagePath: '/Untitled design (18).png', tooltip: 'Shape' } // Keep this at the bottom as requested
   ];
 
   // Define updateCanvasSize using useCallback
@@ -488,25 +487,43 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
             
             {/* Left toolbar - only show when not minimized */}
             {!isMinimized && (
-              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-40 flex flex-col bg-black/20 backdrop-blur-sm rounded-r-lg p-1 space-y-3">
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-40 flex flex-col space-y-3">
                 {/* Color indicator */}
                 <button 
                   onClick={() => setShowColorPalette(!showColorPalette)} 
-                  className="w-12 h-12 rounded-full border-2 border-white" 
+                  className="w-12 h-12 rounded-full border-2 border-white ml-1" 
                   style={{ backgroundColor: activeColor }}
                 />
                 
                 {/* Tools */}
-                {tools.map((tool) => (
-                  <button 
-                    key={tool.id}
-                    onClick={() => setActiveTool(tool.id)}
-                    className={`w-12 h-12 flex items-center justify-center text-xl rounded-lg ${activeTool === tool.id ? 'bg-black/30 text-white' : 'text-white hover:bg-black/20'}`}
-                    title={tool.tooltip}
-                  >
-                    {tool.icon}
-                  </button>
-                ))}
+                <div className="flex flex-col space-y-3">
+                  {tools.map((tool) => (
+                    <motion.div 
+                      key={tool.id}
+                      className="relative"
+                      animate={{
+                        x: activeTool === tool.id ? 15 : 0
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20
+                      }}
+                    >
+                      <button 
+                        onClick={() => setActiveTool(tool.id)}
+                        className="relative focus:outline-none"
+                        title={tool.tooltip}
+                      >
+                        <img 
+                          src={tool.imagePath} 
+                          alt={tool.tooltip}
+                          className="h-14 w-auto object-contain"
+                        />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
           </motion.div>
