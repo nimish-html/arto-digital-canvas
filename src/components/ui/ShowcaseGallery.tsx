@@ -7,12 +7,14 @@ interface ShowcaseGalleryProps {
   items: MediaItem[];
   title: string;
   description?: string;
+  onItemClick?: (item: MediaItem) => void;
 }
 
 const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({ 
   items, 
   title, 
-  description 
+  description,
+  onItemClick
 }) => {
   // Initial number of items to display
   const [visibleItems, setVisibleItems] = useState<number>(12);
@@ -96,11 +98,15 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
               <img 
                 src={item.url} 
                 alt={item.title} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => onItemClick && onItemClick(item)}
               />
             )}
             
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+            <div 
+              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer"
+              onClick={() => onItemClick && onItemClick(item)}
+            >
               <h3 className="text-white text-lg font-semibold">{item.title}</h3>
               <p className="text-white/80 text-sm">{item.desc}</p>
             </div>
@@ -120,8 +126,16 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
             }}
             whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
           >
-            <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+            <img 
+              src={item.url} 
+              alt={item.title} 
+              className="w-full h-full object-cover cursor-pointer" 
+              onClick={() => onItemClick && onItemClick(item)}
+            />
+            <div 
+              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer"
+              onClick={() => onItemClick && onItemClick(item)}
+            >
               <h3 className="text-white text-lg font-semibold">{item.title}</h3>
               <p className="text-white/80 text-sm">{item.desc}</p>
             </div>

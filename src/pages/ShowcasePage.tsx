@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import PageNavbar from '../components/ui/PageNavbar';
 import { MediaItem } from '../types';
 import ShowcaseGallery from '../components/ui/ShowcaseGallery';
+import ArtworkModal, { ArtworkData } from '../components/ui/ArtworkModal';
 
 // Curated MS Paint style and digital art platform artworks
 const artworkImages = [
@@ -12,49 +13,70 @@ const artworkImages = [
     url: 'https://images.unsplash.com/photo-1605106702734-205df224ecce?w=800&auto=format&fit=crop',
     title: 'Colorful Geometry',
     creator: 'David Park',
-    description: 'Digital painting with vibrant colors'
+    description: 'Digital painting with vibrant colors',
+    likes: 243,
+    impressions: 1872,
+    createdAt: '2024-12-15'
   },
   {
     id: 'art2',
     url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop',
     title: 'Digital Sunset',
     creator: 'Alex Johnson',
-    description: 'MS Paint inspired landscape'
+    description: 'MS Paint inspired landscape',
+    likes: 189,
+    impressions: 1254,
+    createdAt: '2025-01-05'
   },
   {
     id: 'art3',
     url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop',
     title: 'Gradient Waves',
     creator: 'Elena Diaz',
-    description: 'Smooth gradient art reminiscent of MS Paint'
+    description: 'Smooth gradient art reminiscent of MS Paint',
+    likes: 312,
+    impressions: 2145,
+    createdAt: '2025-02-18'
   },
   {
     id: 'art4',
     url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop',
     title: 'Colorful Splash',
     creator: 'Michael Brown',
-    description: 'Digital paint splatter technique'
+    description: 'Digital paint splatter technique',
+    likes: 156,
+    impressions: 987,
+    createdAt: '2025-03-10'
   },
   {
     id: 'art6',
     url: 'https://images.unsplash.com/photo-1533713692156-f70938dc0d54?q=80&w=1974&auto=format&fit=crop',
     title: 'Ocean Depths',
     creator: 'Emma Thompson',
-    description: 'Digital painting with blue tones'
+    description: 'Digital painting with blue tones',
+    likes: 278,
+    impressions: 1532,
+    createdAt: '2025-01-22'
   },
   {
     id: 'art7',
     url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop',
     title: 'Abstract Squares',
     creator: 'Sara Lee',
-    description: 'MS Paint style geometric composition'
+    description: 'MS Paint style geometric composition',
+    likes: 195,
+    impressions: 1087,
+    createdAt: '2025-02-05'
   },
   {
     id: 'art8',
     url: 'https://images.unsplash.com/photo-1608501078713-8e445a709b39?q=80&w=2070&auto=format&fit=crop',
     title: 'Neon Dreams',
     creator: 'James Wilson',
-    description: 'Digital painting with neon effects'
+    description: 'Digital painting with neon effects',
+    likes: 342,
+    impressions: 2356,
+    createdAt: '2024-12-28'
   },
   {
     id: 'art9',
@@ -160,6 +182,8 @@ const artworkImages = [
 const ShowcasePage: React.FC = () => {
   const [galleryItems, setGalleryItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Load all data at once
   useEffect(() => {
@@ -170,6 +194,7 @@ const ShowcasePage: React.FC = () => {
         title: image.title,
         desc: `By ${image.creator} • ${image.description}`,
         url: image.url,
+        metadata: image, // Store the original artwork data for modal
       }));
       
       setGalleryItems(items);
@@ -178,6 +203,18 @@ const ShowcasePage: React.FC = () => {
     
     return () => clearTimeout(timer);
   }, []);
+  
+  // Handle opening the modal when an artwork is clicked
+  const handleArtworkClick = (item: MediaItem) => {
+    const artworkData = item.metadata as ArtworkData;
+    setSelectedArtwork(artworkData);
+    setIsModalOpen(true);
+  };
+  
+  // Handle closing the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
   
   if (isLoading) {
     return (
@@ -200,8 +237,16 @@ const ShowcasePage: React.FC = () => {
       <main className="flex-1 mt-20">
         <ShowcaseGallery
           items={galleryItems}
-          title="Gallery of Excellence"
-          description="Extraordinary creations from visionary artists worldwide"
+          title="Digital Art Showcase"
+          description="Explore our curated collection of MS Paint style and digital artworks"
+          onItemClick={handleArtworkClick}
+        />
+        
+        {/* Artwork Modal */}
+        <ArtworkModal
+          artwork={selectedArtwork}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
         />
       </main>
       

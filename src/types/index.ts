@@ -63,4 +63,5 @@ export interface MediaItem {
   title: string;
   desc: string;
   url: string;
+  metadata?: any; // For storing additional data about the item
 }
