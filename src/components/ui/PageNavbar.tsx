@@ -20,7 +20,7 @@ const PageNavbar: React.FC = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-gray-900/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 dark:border-gray-700 px-4 py-3"
+      className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 px-4 py-3"
     >
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo and Brand */}
@@ -30,7 +30,7 @@ const PageNavbar: React.FC = () => {
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
         >
-          <div className="relative w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+          <div className="relative w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm drop-shadow-[0_5px_18px_rgba(0,0,0,0.25)]">
             <motion.div 
               className="absolute w-10 h-10 bg-white rounded-full"
               animate={
@@ -196,7 +196,7 @@ const PageNavbar: React.FC = () => {
         <div className="flex items-center space-x-4">
           {/* Dark Mode Toggle */}
           <motion.button
-            className="p-2 rounded-full bg-gray-800 dark:bg-gray-700"
+            className={`p-2 rounded-full transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-white/80 border border-gray-200 shadow'}`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.1 }}

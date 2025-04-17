@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { renderCanvas } from "./ui/canvas";
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
+import { useTheme } from "../context/ThemeContext";
 
 export function Hero() {
+  const { isDarkMode } = useTheme();
   useEffect(() => {
     renderCanvas();
   }, []);
@@ -57,10 +59,12 @@ export function Hero() {
 
           <h1 className="mt-8 text-2xl md:text-2xl">
             <span className="text-purple-dark font-bold">Revolutionary tools.</span>{" "}
-            <span className="text-gray-800">Limitless creativity.</span>
+            <span className={
+              `${isDarkMode ? 'text-indigo-200' : 'text-gray-800'}`
+            }>Limitless creativity.</span>
           </h1>
 
-          <p className="md:text-md mx-auto mb-16 mt-2 max-w-2xl px-6 text-sm text-gray-600 sm:px-6 md:max-w-4xl md:px-20 lg:text-lg">
+          <p className={`md:text-md mx-auto mb-16 mt-2 max-w-2xl px-6 text-sm sm:px-6 md:max-w-4xl md:px-20 lg:text-lg ${isDarkMode ? 'text-indigo-300' : 'text-gray-600'}`}>
             Pro Tip: Hover on ARTO on top left
           </p>
           <div className="flex justify-center gap-2">

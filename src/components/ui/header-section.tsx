@@ -120,11 +120,14 @@ function HeaderSection() {
 
           {/* Dark Mode Toggle */}
           <div className="hidden md:flex items-center space-x-2">
-            <Sun className="h-4 w-4" />
+            <span className="p-1 rounded-full bg-white/80 border border-gray-200 shadow transition-colors dark:bg-gray-800 dark:border-gray-700">
+              <Sun className="h-4 w-4" />
+            </span>
             <Switch
               id="dark-mode-header"
               checked={isDarkMode}
               onCheckedChange={toggleDarkMode}
+              className={`transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-white/80 border border-gray-200 shadow'}`}
             />
             <Moon className="h-4 w-4" />
           </div>
@@ -165,11 +168,14 @@ function HeaderSection() {
                 Profile
               </Link>
               <div className="flex items-center space-x-2 py-2">
-                <Sun className="h-4 w-4" />
+                <span className="p-1 rounded-full bg-white/80 border border-gray-200 shadow transition-colors dark:bg-gray-800 dark:border-gray-700">
+                  <Sun className="h-4 w-4" />
+                </span>
                 <Switch
                   id="dark-mode-mobile"
                   checked={isDarkMode}
                   onCheckedChange={toggleDarkMode}
+                  className={`transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-white/80 border border-gray-200 shadow'}`}
                 />
                 <Moon className="h-4 w-4" />
                 <Label htmlFor="dark-mode-mobile" className="sr-only">
