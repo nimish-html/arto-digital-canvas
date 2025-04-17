@@ -30,13 +30,6 @@ const artworkImages = [
     description: 'Smooth gradient art reminiscent of MS Paint'
   },
   {
-    id: 'art4',
-    url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop',
-    title: 'Colorful Splash',
-    creator: 'Michael Brown',
-    description: 'Digital paint splatter technique'
-  },
-  {
     id: 'art6',
     url: 'https://images.unsplash.com/photo-1533713692156-f70938dc0d54?q=80&w=1974&auto=format&fit=crop',
     title: 'Ocean Depths',
@@ -63,13 +56,6 @@ const artworkImages = [
     title: 'Digital Sky',
     creator: 'Alex Johnson',
     description: 'MS Paint style sky scene'
-  },
-  {
-    id: 'art10',
-    url: 'https://images.unsplash.com/photo-1484589065579-248aad0d8b13?w=800&auto=format&fit=crop',
-    title: 'Pastel Composition',
-    creator: 'Michael Brown',
-    description: 'Digital painting with pastel colors'
   },
   {
     id: 'art12',

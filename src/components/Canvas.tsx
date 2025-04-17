@@ -446,6 +446,16 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
             )}
             
             {/* Floating control buttons, directly on canvas instead of in a header */}
+            <div className="absolute top-3 left-3 z-50 flex space-x-2">
+              {!isMinimized && (
+                <button 
+                  onClick={() => setShowColorPalette(!showColorPalette)} 
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white" 
+                  style={{ backgroundColor: activeColor }}
+                  title="Color Palette"
+                />
+              )}
+            </div>
             <div className="absolute top-3 right-3 z-50 flex space-x-2">
               {!isMinimized && (
                 <>
@@ -488,13 +498,6 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
             {/* Left toolbar - only show when not minimized */}
             {!isMinimized && (
               <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-40 flex flex-col space-y-3">
-                {/* Color indicator */}
-                <button 
-                  onClick={() => setShowColorPalette(!showColorPalette)} 
-                  className="w-12 h-12 rounded-full border-2 border-white ml-1" 
-                  style={{ backgroundColor: activeColor }}
-                />
-                
                 {/* Tools */}
                 <div className="flex flex-col space-y-3">
                   {tools.map((tool) => (
@@ -502,7 +505,8 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
                       key={tool.id}
                       className="relative"
                       animate={{
-                        x: activeTool === tool.id ? 15 : 0
+                        x: 0,
+                        scale: activeTool === tool.id ? 1.35 : 1
                       }}
                       transition={{
                         type: "spring",
@@ -518,7 +522,7 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
                         <img 
                           src={tool.imagePath} 
                           alt={tool.tooltip}
-                          className="h-14 w-auto object-contain"
+                          className={`h-14 w-auto object-contain ${activeTool === tool.id ? 'drop-shadow-lg filter drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]' : ''}`}
                         />
                       </button>
                     </motion.div>
@@ -561,7 +565,7 @@ const Canvas: React.FC<CanvasProps> = ({ onFullscreenChange }) => {
       
       {/* Color palette popup */}
       {showColorPalette && !isMinimized && (
-        <div className="fixed left-16 top-1/4 z-50 bg-black/80 backdrop-blur-md rounded-xl p-4 shadow-xl">
+        <div className="fixed left-16 top-16 z-50 bg-black/80 backdrop-blur-md rounded-xl p-4 shadow-xl">
           <div className="flex justify-between items-center mb-2">
             <div className="text-white text-sm font-medium">Palette</div>
             <button 
