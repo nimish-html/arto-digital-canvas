@@ -745,6 +745,72 @@ export const showcaseArtworks: Artwork[] = [
 ];
 
 // Mock user's artwork collection
+// Mock liked artworks
+export const likedArtworks: Artwork[] = [
+  {
+    id: 'liked001',
+    title: 'Abstract Dreams',
+    imageUrl: 'https://images.unsplash.com/photo-1482160549825-59d1b23cb208?w=800&auto=format&fit=crop',
+    createdAt: '2025-04-10T15:30:00Z',
+    userId: 'user789',
+    userName: 'David Park',
+    userAvatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&q=80&crop=faces&fit=crop',
+    likes: 245,
+    views: 892,
+    tags: ['abstract', 'colorful', 'digital']
+  },
+  {
+    id: 'liked002',
+    title: 'Digital Landscape',
+    imageUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop',
+    createdAt: '2025-04-08T09:15:00Z',
+    userId: 'user456',
+    userName: 'Maya Chen',
+    userAvatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&q=80&crop=faces&fit=crop',
+    likes: 189,
+    views: 654,
+    tags: ['landscape', 'digital', 'colorful']
+  },
+  {
+    id: 'liked003',
+    title: 'Neon Lights',
+    imageUrl: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?w=800&auto=format&fit=crop',
+    createdAt: '2025-04-05T18:45:00Z',
+    userId: 'user234',
+    userName: 'Sara Lee',
+    userAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&q=80&crop=faces&fit=crop',
+    likes: 312,
+    views: 1023,
+    tags: ['neon', 'night', 'digital']
+  }
+];
+
+// Mock collections
+export const userCollections = [
+  {
+    id: 'col001',
+    name: 'Favorite Abstracts',
+    description: 'A collection of my favorite abstract digital artworks',
+    coverImage: 'https://images.unsplash.com/photo-1482160549825-59d1b23cb208?w=800&auto=format&fit=crop',
+    artworkCount: 15
+  },
+  {
+    id: 'col002',
+    name: 'Digital Landscapes',
+    description: 'Beautiful digital landscape art',
+    coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop',
+    artworkCount: 8
+  },
+  {
+    id: 'col003',
+    name: 'Neon Dreams',
+    description: 'Vibrant neon-themed digital art',
+    coverImage: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?w=800&auto=format&fit=crop',
+    artworkCount: 12
+  }
+];
+
+// Mock user's artwork collection
 export const userArtworks: Artwork[] = [
   {
     id: 'user001',

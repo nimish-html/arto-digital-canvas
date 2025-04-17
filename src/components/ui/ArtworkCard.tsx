@@ -9,12 +9,14 @@ interface ArtworkCardProps {
   artwork: Artwork;
   variant?: 'grid' | 'list';
   showActions?: boolean;
+  showCreator?: boolean;
 }
 
 const ArtworkCard: React.FC<ArtworkCardProps> = ({
   artwork,
   variant = 'grid',
-  showActions = true
+  showActions = true,
+  showCreator = true
 }) => {
   const timeAgo = formatDistanceToNow(new Date(artwork.createdAt));
   
@@ -41,14 +43,16 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({
       
       <div className={`p-4 ${variant === 'list' ? 'flex-1' : ''}`}>
         <div className="flex items-center justify-between mb-2">
-          <Link to={`/profile/${artwork.userId}`} className="flex items-center">
-            <img 
-              src={artwork.userAvatar} 
-              alt={artwork.userName}
-              className="w-8 h-8 rounded-full mr-2 border border-gray-200"
-            />
-            <span className="text-sm font-medium">{artwork.userName}</span>
-          </Link>
+          {showCreator && (
+            <Link to={`/profile/${artwork.userId}`} className="flex items-center">
+              <img 
+                src={artwork.userAvatar} 
+                alt={artwork.userName}
+                className="w-8 h-8 rounded-full mr-2 border border-gray-200"
+              />
+              <span className="text-sm font-medium">{artwork.userName}</span>
+            </Link>
+          )}
           <span className="text-xs text-gray-500">{timeAgo}</span>
         </div>
         

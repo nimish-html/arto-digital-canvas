@@ -1,22 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { SearchX, FileX, AlertCircle } from 'lucide-react';
-import { Button } from './button';
+import { LucideIcon, SearchX, FileX, AlertCircle } from 'lucide-react';
+
 
 interface EmptyStateProps {
-  type: 'search' | 'artworks' | 'error';
+  type?: 'search' | 'artworks' | 'error';
+  icon?: LucideIcon;
   title?: string;
   description?: string;
-  actionText?: string;
-  onAction?: () => void;
+  action?: React.ReactNode;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
   type,
+  icon: Icon,
   title,
   description,
-  actionText,
-  onAction
+  action
 }) => {
   const getIcon = () => {
     switch (type) {
@@ -70,7 +70,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mb-4"
       >
-        {getIcon()}
+        {Icon ? <Icon size={48} className="text-gray-400" /> : getIcon()}
       </motion.div>
       <h3 className="text-xl font-semibold mb-2">
         {title || getDefaultTitle()}
@@ -78,9 +78,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
         {description || getDefaultDescription()}
       </p>
-      {actionText && onAction && (
-        <Button onClick={onAction}>{actionText}</Button>
-      )}
+      {action}
     </motion.div>
   );
 };

@@ -19,7 +19,7 @@ import Footer from '../components/Footer';
 import ArtworkCard from '../components/ui/ArtworkCard';
 import EmptyState from '../components/ui/EmptyState';
 import { Button } from '../components/ui/button';
-import { userArtworks, currentUser } from '../data/mock';
+import { userArtworks, currentUser, likedArtworks, userCollections } from '../data/mock';
 import { formatReadableDate } from '../utils/dateUtils';
 import { useNavigate } from 'react-router-dom';
 import PageNavbar from '../components/ui/PageNavbar';
@@ -40,21 +40,22 @@ const ProfilePage: React.FC = () => {
       case 'artworks':
         return userArtworks;
       case 'collections':
-        return [];
+        return userCollections;
       case 'likes':
-        return [];
+        return likedArtworks;
       default:
         return userArtworks;
     }
   };
   
-  const allArtworks = getTabContent();
-  const displayedArtworks = allArtworks.slice(0, visibleArtworks);
-  const hasMoreArtworks = visibleArtworks < allArtworks.length;
+  const allContent = getTabContent();
+const isCollectionsTab = activeTab === 'collections';
+  const displayedContent = allContent.slice(0, visibleArtworks);
+  const hasMoreContent = visibleArtworks < allContent.length;
   
   // Function to load more artworks
   const showMoreArtworks = () => {
-    setVisibleArtworks(prev => Math.min(prev + 6, allArtworks.length));
+    setVisibleArtworks(prev => Math.min(prev + 6, allContent.length));
   };
   
   return (
@@ -308,34 +309,70 @@ const ProfilePage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            {displayedArtworks.length > 0 ? (
+            {displayedContent.length > 0 ? (
               <>
-                <div className={`${
-                  viewMode === 'grid' 
-                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
-                    : 'flex flex-col space-y-4'
-                }`}>
-                  {displayedArtworks.map((artwork, index) => (
-                    <motion.div
-                      key={artwork.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        delay: index * 0.05,
-                        duration: 0.3,
-                        ease: "easeOut"
-                      }}
-                    >
-                      <ArtworkCard 
-                        artwork={artwork} 
-                        variant={viewMode} 
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                {isCollectionsTab ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {displayedContent.map((collection: any) => (
+                      <motion.div
+                        key={collection.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-indigo-100 dark:border-gray-700"
+                      >
+                        <div className="relative h-48">
+                          <img
+                            src={collection.coverImage}
+                            alt={collection.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <h3 className="text-white font-semibold text-lg">{collection.name}</h3>
+                            <p className="text-white/80 text-sm mt-1">{collection.artworkCount} artworks</p>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-gray-600 dark:text-gray-300 text-sm">{collection.description}</p>
+                          <Button
+                            variant="outline"
+                            className="w-full mt-4 border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600"
+                          >
+                            <Grid size={16} className="mr-2 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-indigo-600 dark:text-indigo-400">View Collection</span>
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={`${
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
+                      : 'flex flex-col space-y-4'
+                  }`}>
+                    {displayedContent.map((artwork: any, index) => (
+                      <motion.div
+                        key={artwork.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          delay: index * 0.05,
+                          duration: 0.3,
+                          ease: "easeOut"
+                        }}
+                      >
+                        <ArtworkCard 
+                          artwork={artwork} 
+                          showCreator={activeTab !== 'artworks'}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
                 
                 {/* Show More Button */}
-                {hasMoreArtworks && (
+                {hasMoreContent && (
                   <ShowMoreButton
                     onClick={showMoreArtworks}
                     className="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 mt-6"
@@ -343,24 +380,18 @@ const ProfilePage: React.FC = () => {
                 )}
               </>
             ) : (
-              <EmptyState 
-                type="artworks" 
-                title={
-                  activeTab === 'artworks' 
-                    ? 'No artworks yet' 
-                    : activeTab === 'collections' 
-                      ? 'No collections yet' 
-                      : 'No liked artworks'
+              <EmptyState
+                icon={activeTab === 'artworks' ? Image : activeTab === 'collections' ? Grid : ThumbsUp}
+                title={`No ${activeTab} yet`}
+                description={`You haven't ${activeTab === 'artworks' ? 'created any artworks' : activeTab === 'collections' ? 'created any collections' : 'liked any artworks'} yet.`}
+                action={
+                  activeTab === 'artworks' ? (
+                    <Button onClick={() => navigate('/create')} className="mt-4">
+                      <Plus size={16} className="mr-2" />
+                      Create Artwork
+                    </Button>
+                  ) : null
                 }
-                description={
-                  activeTab === 'artworks' 
-                    ? 'Start creating your first artwork to see it here.' 
-                    : activeTab === 'collections' 
-                      ? 'Create your first collection by saving artworks you like.' 
-                      : 'Like some artworks to see them here.'
-                }
-                actionText={activeTab === 'artworks' ? 'Create Artwork' : 'Explore Artworks'}
-                onAction={() => activeTab === 'artworks' ? navigate('/canvas') : navigate('/showcase')}
               />
             )}
           </motion.div>
