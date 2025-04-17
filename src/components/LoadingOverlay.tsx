@@ -176,12 +176,16 @@ const LoadingOverlay: React.FC = () => {
         </motion.div>
         
         <motion.div 
-          className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
+          className="mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          ARTO
+          <img
+            src="/Screenshot_2025-04-17_at_6.14.12_PM-removebg-preview.png"
+            alt="Arto logo"
+            className="h-9"
+          />
         </motion.div>
         
         <motion.p 

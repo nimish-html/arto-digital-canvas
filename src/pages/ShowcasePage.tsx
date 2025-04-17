@@ -130,7 +130,7 @@ const artworkImages = [
   },
   {
     id: 'art18',
-    url: 'https://images.unsplash.com/photo-1580893246395-52aead8960dc?w=800&auto=format&fit=crop',
+    url: 'https://images.unsplash.com/photo-1558470598-a5dda9640f68?w=800&auto=format&fit=crop',
     title: 'Simple House',
     creator: 'Emma Thompson',
     description: 'Minimalist digital drawing'
@@ -165,7 +165,7 @@ const artworkImages = [
   },
   {
     id: 'art23',
-    url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop',
+    url: 'https://images.unsplash.com/photo-1577017040065-650ee4d43339?w=800&auto=format&fit=crop',
     title: 'Basic Pattern',
     creator: 'Alex Johnson',
     description: 'Simple repeating patterns'
@@ -238,7 +238,7 @@ const ShowcasePage: React.FC = () => {
         <ShowcaseGallery
           items={galleryItems}
           title="Digital Art Showcase"
-          description="Explore our curated collection of MS Paint style and digital artworks"
+          description="Explore our curated collection from our top and rising artists"
           onItemClick={handleArtworkClick}
         />
         

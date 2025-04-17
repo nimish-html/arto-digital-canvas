@@ -34,7 +34,11 @@ function HeaderSection() {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center space-x-2">
             <Palette className="h-6 w-6 text-purple-dark dark:text-purple-medium" />
-            <span className="hidden text-xl font-bold text-foreground sm:inline-block">Arto</span>
+            <img
+              src="/Screenshot_2025-04-17_at_6.14.12_PM-removebg-preview.png"
+              alt="Arto logo"
+              className="hidden h-6 sm:inline-block"
+            />
           </Link>
         </div>
 

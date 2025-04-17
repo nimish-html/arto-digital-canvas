@@ -185,7 +185,11 @@ const PageNavbar: React.FC = () => {
               <div className="w-full h-full bg-white rotate-45 transform origin-center" />
             </motion.div>
           </div>
-          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">ARTO</span>
+          <img
+            src="/Screenshot_2025-04-17_at_6.14.12_PM-removebg-preview.png"
+            alt="Arto logo"
+            className="h-9"
+          />
         </Link>
         
         {/* Navigation Links with Theme Toggle */}
