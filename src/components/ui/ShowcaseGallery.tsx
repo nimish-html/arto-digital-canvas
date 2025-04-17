@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { MediaItem } from '../../types';
 import { ShowMoreButton } from './show-more-button';
 
@@ -19,6 +19,8 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
   
   const displayedItems = items.slice(0, visibleItems);
   const hasMoreItems = visibleItems < items.length;
+  const padCount = (4 - (displayedItems.length % 4)) % 4;
+  const fillerItems: MediaItem[] = Array.from({ length: padCount }).map((_, i) => displayedItems[i % displayedItems.length]);
   
   // Load more items
   const showMoreItems = () => {
@@ -98,6 +100,27 @@ const ShowcaseGallery: React.FC<ShowcaseGalleryProps> = ({
               />
             )}
             
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+              <h3 className="text-white text-lg font-semibold">{item.title}</h3>
+              <p className="text-white/80 text-sm">{item.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+        {fillerItems.map((item, idx) => (
+          <motion.div
+            key={`filler-${idx}`}
+            className="relative overflow-hidden rounded-xl aspect-square"
+            variants={{
+              hidden: { y: 50, opacity: 0 },
+              visible: {
+                y: 0,
+                opacity: 1,
+                transition: { type: 'spring', stiffness: 350, damping: 25, delay: (displayedItems.length + idx) * 0.03 }
+              }
+            }}
+            whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
+          >
+            <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
               <h3 className="text-white text-lg font-semibold">{item.title}</h3>
               <p className="text-white/80 text-sm">{item.desc}</p>

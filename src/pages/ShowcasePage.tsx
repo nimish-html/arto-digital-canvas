@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '../components/Footer';
 import PageNavbar from '../components/ui/PageNavbar';
-import { sampleVideoUrls } from '../data/mock';
 import { MediaItem } from '../types';
 import ShowcaseGallery from '../components/ui/ShowcaseGallery';
 
@@ -28,6 +27,13 @@ const artworkImages = [
     title: 'Gradient Waves',
     creator: 'Elena Diaz',
     description: 'Smooth gradient art reminiscent of MS Paint'
+  },
+  {
+    id: 'art4',
+    url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop',
+    title: 'Colorful Splash',
+    creator: 'Michael Brown',
+    description: 'Digital paint splatter technique'
   },
   {
     id: 'art6',
@@ -56,6 +62,13 @@ const artworkImages = [
     title: 'Digital Sky',
     creator: 'Alex Johnson',
     description: 'MS Paint style sky scene'
+  },
+  {
+    id: 'art10',
+    url: 'https://images.unsplash.com/photo-1484589065579-248aad0d8b13?w=800&auto=format&fit=crop',
+    title: 'Pastel Composition',
+    creator: 'Michael Brown',
+    description: 'Digital painting with pastel colors'
   },
   {
     id: 'art12',
@@ -102,7 +115,7 @@ const artworkImages = [
   },
   {
     id: 'art19',
-    url: 'https://images.unsplash.com/photo-1603645635960-66172c73f392?w=800&auto=format&fit=crop',
+    url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop',
     title: 'Block Colors',
     creator: 'David Park',
     description: 'Study of block color composition'
@@ -123,7 +136,7 @@ const artworkImages = [
   },
   {
     id: 'art22',
-    url: 'https://images.unsplash.com/photo-1581299893039-478d1b5ce775?w=800&auto=format&fit=crop',
+    url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop',
     title: 'Squiggly Lines',
     creator: 'Michael Brown',
     description: 'Expressive line work in digital format'
@@ -151,26 +164,13 @@ const ShowcasePage: React.FC = () => {
   // Load all data at once
   useEffect(() => {
     const timer = setTimeout(() => {
-      const items = artworkImages.map((image, index) => {
-        // Mix in a video item occasionally for variety
-        if (index === 3 || index === 8 || index === 16) {
-          return {
-            id: `video-${image.id}`,
-            type: "video",
-            title: image.title,
-            desc: `By ${image.creator} • Digital art process video`,
-            url: sampleVideoUrls[index % sampleVideoUrls.length]
-          };
-        }
-        
-        return {
-          id: image.id,
-          type: "image", 
-          title: image.title,
-          desc: `By ${image.creator} • ${image.description}`,
-          url: image.url
-        };
-      });
+      const items: MediaItem[] = artworkImages.map((image): MediaItem => ({
+        id: image.id,
+        type: 'image',
+        title: image.title,
+        desc: `By ${image.creator} • ${image.description}`,
+        url: image.url,
+      }));
       
       setGalleryItems(items);
       setIsLoading(false);
@@ -201,7 +201,7 @@ const ShowcasePage: React.FC = () => {
         <ShowcaseGallery
           items={galleryItems}
           title="Digital Art Showcase"
-          description="Explore a curated collection of MS Paint style digital art and paintings"
+          description="top artworks made with love from our community"
         />
       </main>
       
