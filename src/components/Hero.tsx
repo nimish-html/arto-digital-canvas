@@ -1,15 +1,10 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { renderCanvas } from "./ui/canvas";
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { useTheme } from "../context/ThemeContext";
 
 export function Hero() {
   const { isDarkMode } = useTheme();
-  useEffect(() => {
-    renderCanvas();
-  }, []);
 
   return (
     <section id="home" className="relative z-10">

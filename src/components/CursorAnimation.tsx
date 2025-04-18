@@ -1,18 +1,10 @@
 import { useEffect } from "react";
-import { renderCanvas } from "./ui/canvas";
+// @ts-ignore - Suppress TS error for JS module without declaration file
+import { renderCanvas, resizeCanvas, cleanupCanvas } from "../utils/cursorEffectScript.js";
 
 export const CursorAnimation = () => {
   useEffect(() => {
     renderCanvas();
-    
-    // Make sure the canvas stays at the full viewport size
-    const resizeCanvas = () => {
-      const canvas = document.getElementById("canvas");
-      if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-    };
     
     // Initial resize
     resizeCanvas();
@@ -22,6 +14,7 @@ export const CursorAnimation = () => {
     
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      cleanupCanvas();
     };
   }, []);
 
