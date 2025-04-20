@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
+import { TextShimmer } from "./ui/text-shimmer";
 import { useTheme } from "../context/ThemeContext";
 
 export function Hero() {
@@ -11,19 +12,27 @@ export function Hero() {
       <div className="animate-fadeIn mt-12 flex flex-col items-center justify-center px-4 text-center md:mt-12">
         <div className="z-10 mb-6 mt-10 sm:justify-center md:mb-4 md:mt-10">
           <div className="relative flex items-center whitespace-nowrap rounded-full border border-indigo-200 bg-indigo-50/70 px-3 py-1 text-xs leading-6 text-indigo-600">
-            <svg className="h-5 p-1 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-5 flex-shrink-0 p-1 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg> ARTO. Now in beta.
-            <Link
-              to="/canvas"
-              className="hover:text-indigo-800 ml-1 flex items-center font-semibold"
+            </svg>
+            <TextShimmer
+              duration={3}
+              textLength={30} /* Approximate length for spread calculation */
+              className="ml-1 flex items-center [--base-color:theme(colors.indigo.600)] [--base-gradient-color:theme(colors.indigo.100)] dark:[--base-color:theme(colors.indigo.500)] dark:[--base-gradient-color:theme(colors.indigo.300)]"
             >
-              <div className="absolute inset-0 flex" aria-hidden="true" />
-              Explore{" "}
-              <span aria-hidden="true">
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            </Link>
+              ARTO. Now in beta.{" "}
+              <Link
+                to="/canvas"
+                className="hover:text-indigo-800 ml-1 flex items-center font-semibold"
+              >
+                <div className="absolute inset-0 flex" aria-hidden="true" />
+                Explore
+                {/* Span styled to override shimmer */}
+                <span aria-hidden="true" className="ml-1 inline-flex items-center text-indigo-600 bg-clip-border text-opacity-100">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+            </TextShimmer>
           </div>
         </div>
 
