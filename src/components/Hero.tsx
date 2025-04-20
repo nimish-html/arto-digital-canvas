@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Plus, ArrowRight } from "lucide-react";
+import { GetStartedButton } from "./ui/get-started-button";
 import { Button } from "./ui/button";
 import { TextShimmer } from "./ui/text-shimmer";
 import { useTheme } from "../context/ThemeContext";
@@ -73,10 +74,8 @@ export function Hero() {
           </p>
           <div className="flex justify-center gap-2">
             <Link to="/canvas">
-              <Button variant="default" size="lg" className="bg-purple-dark hover:bg-purple-800">
-                Create Now
-              </Button>
-            </Link>
+  <GetStartedButton />
+</Link>
             <Link to="/canvas">
               <Button variant="outline" size="lg" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
                 Explore Art

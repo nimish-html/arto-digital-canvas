@@ -6,7 +6,9 @@ import CursorAnimation from '../components/CursorAnimation';
 import Footer from '../components/Footer';
 import { FeaturesSectionWithHoverEffects } from '../components/features/FeaturesSectionWithHoverEffects';
 import Navbar from '../components/ui/Navbar';
-import { Button } from '../components/ui/button';
+import { GetStartedButton } from '../components/ui/get-started-button';
+
+// Removed unused Button import in favor of GetStartedButton
 
 const Home: React.FC = () => {
   return (
@@ -53,9 +55,9 @@ const Home: React.FC = () => {
           
           <div className="text-center mt-16">
             <Link to="/canvas">
-              <Button variant="default" size="lg" className="bg-purple-dark hover:bg-purple-800">
+              <GetStartedButton>
                 Try It Now
-              </Button>
+              </GetStartedButton>
             </Link>
           </div>
         </section>
